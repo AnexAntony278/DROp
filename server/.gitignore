@@ -1,0 +1,73 @@
+# Node.js modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*.local
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.stackdump
+*.swp
+
+# Dependency directories
+jspm_packages/
+bower_components/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing outputs
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+out/
+tmp/
+temp/
+
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# System files
+*.lock
+*.pid
+*.seed
+*.gz
+
+# Misc
+*.log.*
+*.tgz
+!.npmrc
+
+# Yarn and npm artifacts
+yarn-error.log
+.yarn-integrity
+.pnp.*
+.eslintcache
+
+# Next.js (if applicable)
+.next/
+
+# Svelte (if applicable)
+.svelte-kit/
+
+# React Native (if applicable)
+.expo/
+
+# Firebase (if applicable)
+.firebase/
