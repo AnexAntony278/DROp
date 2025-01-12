@@ -50,6 +50,8 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   color: Colors.amber,
                   height: 100,
+                  child: Icon(Icons.add),
+                  width: double.infinity,
                 ),
               ),
             )
