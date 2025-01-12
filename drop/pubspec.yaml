@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   http: ^1.2.2
   lottie: ^3.3.0
+  mobile_scanner: ^6.0.2
+  
 
 dev_dependencies:
   flutter_test:
