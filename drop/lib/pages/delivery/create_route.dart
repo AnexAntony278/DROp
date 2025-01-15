@@ -1,7 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import '../../constants/constants.dart';
+import 'package:http/http.dart' as http;
 
 class CreateRoutePage extends StatefulWidget {
   const CreateRoutePage({super.key});
@@ -14,7 +15,9 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   final _destinationTextEditingController = TextEditingController();
   final _noteTextEditingController = TextEditingController();
   List<Map> destinations = [];
-
+  List<dynamic> _suggestedDestinations = [
+    {'description': 'haa'}
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,20 +66,25 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                     Row(
                       children: [
                         Expanded(
-                          child: SearchBar(
-                            hintText: "Search for destination",
-                            elevation: WidgetStateProperty.all(1),
-                            shape: WidgetStateProperty.all(LinearBorder.none),
-                            textStyle: WidgetStateProperty.all(
-                              const TextStyle(fontSize: 15),
-                            ),
-                            controller: _destinationTextEditingController,
-                            trailing: [
-                              IconButton(
-                                icon: const Icon(Icons.search),
-                                onPressed: () {},
-                              ),
-                            ],
+                          child: Autocomplete<String>(
+                            optionsBuilder: (textEditingValue) async {
+                              if (textEditingValue.text.isEmpty) {
+                                return [];
+                              } else {
+                                await _getPredictions(textEditingValue.text);
+                                return _suggestedDestinations.map(
+                                  (e) => e['description'],
+                                );
+                              }
+                            },
+                            fieldViewBuilder: (context, textEditingController,
+                                focusNode, onFieldSubmitted) {
+                              return TextFormField(
+                                controller: textEditingController,
+                                focusNode: focusNode,
+                                onTap: onFieldSubmitted,
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -101,10 +109,31 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                     Expanded(
                                       child: MobileScanner(
                                         onDetect: (barcode) {
-                                          debugPrint('\n\n\n\n' +
-                                              jsonDecode((barcode.raw
-                                                      as Map<dynamic, dynamic>)
-                                                  .toString()));
+                                          try {
+                                            Map<String, dynamic> scanInfo =
+                                                jsonDecode(barcode
+                                                    .barcodes.first.rawValue
+                                                    .toString());
+                                            //If scanned item already added to list, show error
+                                            if (destinations.any(
+                                                (destination) =>
+                                                    destination['name'] ==
+                                                    scanInfo['name'])) {
+                                              throw ErrorDescription(
+                                                  'Item already scanned');
+                                            } else {
+                                              setState(() {
+                                                destinations.add(scanInfo);
+                                              });
+                                            }
+                                            Navigator.pop(context);
+                                          } catch (e) {
+                                            Navigator.pop(context);
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(
+                                                    content: Text(
+                                                        'Invalid QR : $e')));
+                                          }
                                         },
                                       ),
                                     ),
@@ -135,6 +164,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         ElevatedButton(
+                          child: const Text('ADD DESTINATION'),
                           onPressed: () {
                             setState(() {
                               destinations.add({
@@ -146,7 +176,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                               _noteTextEditingController.clear();
                             });
                           },
-                          child: const Text('ADD DESTINATION'),
                         ),
                       ],
                     ),
@@ -185,5 +214,24 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
         ],
       ),
     );
+  }
+
+  Future<void> _getPredictions(String? input) async {
+    //GET PREDICTIONS
+    try {
+      var url = Uri.parse(
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input="$input"&key=$MAPS_API_KEY');
+      await http.get(url).then(
+        (response) {
+          if (response.statusCode == 200) {
+            _suggestedDestinations =
+                List.from(jsonDecode(response.body)['predictions']);
+            setState(() {});
+          }
+        },
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 }

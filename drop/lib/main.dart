@@ -1,4 +1,3 @@
-import 'package:drop/font_test.dart';
 import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route.dart';
 import 'package:drop/pages/delivery/homepage.dart';
