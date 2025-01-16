@@ -32,7 +32,7 @@ class MapsAutocomplete {
     await http.get(url).then(
       (response) {
         if (response.statusCode == 200) {
-          predications = List.from(jsonDecode(response.body)['predictions']);
+          predications = (jsonDecode(response.body)['predictions']);
         }
       },
     );

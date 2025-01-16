@@ -10,19 +10,53 @@ class Delivery {
   String? phone;
   String agentId = "";
   String status = "IN_STOCK";
-  String? notes;
+  String? note;
   final String locationName;
   late final LatLng locationLatLng;
   int deliveryAttempts = 0;
 
-  Delivery({required this.locationName, this.notes}) {
+  Delivery({required this.locationName, this.note}) {
     try {
       id = const Uuid().v4();
-      // GEOCODING
       locationLatLng = Geocoding.getLatLng(locationName);
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+  Delivery.fromMap(Map<String, dynamic> data)
+      : id = data['id'],
+        productName = data['productName'],
+        ownerName = data['ownerName'],
+        phone = data['phone'],
+        agentId = data['agentId'] ?? "",
+        status = data['status'] ?? "IN_STOCK",
+        note = data['note'],
+        locationName = data['locationName'],
+        deliveryAttempts = data['deliveryAttempts'] ?? 0 {
+    if (data['locationLatLng'] is Map<String, dynamic>) {
+      locationLatLng =
+          LatLng(data['locationLatLng']['lat'], data['locationLatLng']['lng']);
+    } else {
+      locationLatLng = const LatLng(0.0, 0.0);
+    }
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'productName': productName,
+      'ownerName': ownerName,
+      'phone': phone,
+      'agentId': agentId,
+      'status': status,
+      'note': note,
+      'locationName': locationName,
+      'locationLatLng': {
+        'lat': locationLatLng.latitude,
+        'lng': locationLatLng.longitude,
+      },
+      'deliveryAttempts': deliveryAttempts,
+    };
   }
 
   void incrementDeliveryAttempts() {
