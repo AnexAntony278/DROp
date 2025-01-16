@@ -14,8 +14,7 @@ class CreateRoutePage extends StatefulWidget {
 class _CreateRoutePageState extends State<CreateRoutePage> {
   final _destinationTextEditingController = TextEditingController();
   final _noteTextEditingController = TextEditingController();
-  List<Map> destinations = [];
-
+  List<Delivery> deliveries = [];
   List<dynamic> _suggestedDestinations = [];
   @override
   Widget build(BuildContext context) {
@@ -80,6 +79,8 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                             },
                             fieldViewBuilder: (context, textEditingController,
                                 focusNode, onFieldSubmitted) {
+                              textEditingController.text =
+                                  _destinationTextEditingController.text;
                               return TextFormField(
                                 controller: textEditingController,
                                 focusNode: focusNode,
@@ -119,15 +120,15 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                                     .barcodes.first.rawValue
                                                     .toString());
                                             //If scanned item already added to list, show error
-                                            if (destinations.any(
-                                                (destination) =>
-                                                    destination['name'] ==
-                                                    scanInfo['name'])) {
+                                            if (deliveries.any((destination) =>
+                                                destination.locationName ==
+                                                scanInfo['locationName'])) {
                                               throw ErrorDescription(
                                                   'Item already scanned');
                                             } else {
                                               setState(() {
-                                                destinations.add(scanInfo);
+                                                deliveries.add(
+                                                    Delivery.fromMap(scanInfo));
                                               });
                                             }
                                             Navigator.pop(context);
@@ -170,19 +171,18 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         ElevatedButton(
                           child: const Text('ADD DESTINATION'),
                           onPressed: () {
-                            final s = Delivery(
-                                locationName:
-                                    _destinationTextEditingController.text);
-                            // UI change
-                            setState(() {
-                              destinations.add({
-                                'name': _destinationTextEditingController.text,
-                                if (_noteTextEditingController.text.isNotEmpty)
-                                  'note': _noteTextEditingController.text
+                            //TODO : VALIDARE
+                            if (true) {
+                              setState(() {
+                                final d = Delivery(
+                                    locationName:
+                                        _destinationTextEditingController.text,
+                                    note: _noteTextEditingController.text);
+                                deliveries.add(d);
+                                _destinationTextEditingController.clear();
+                                _noteTextEditingController.clear();
                               });
-                              _destinationTextEditingController.clear();
-                              _noteTextEditingController.clear();
-                            });
+                            }
                           },
                         ),
                       ],
@@ -194,7 +194,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: destinations.length,
+              itemCount: deliveries.length,
               itemBuilder: (context, index) => Card(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 child: ListTile(
@@ -204,20 +204,20 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       FittedBox(
                         fit: BoxFit.fill,
                         child: Text(
-                          '${destinations[index]['name'] ?? ''}',
+                          deliveries[index].locationName,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                       IconButton(
                           onPressed: () {
                             setState(() {
-                              destinations.removeAt(index);
+                              deliveries.removeAt(index);
                             });
                           },
                           icon: const Icon(Icons.close))
                     ],
                   ),
-                  subtitle: Text(destinations[index]['note'] ?? ''),
+                  subtitle: Text(deliveries[index].note ?? ''),
                 ),
               ),
             ),
