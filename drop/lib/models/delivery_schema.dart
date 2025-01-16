@@ -1,5 +1,4 @@
 import 'package:drop/app_services/maps_api_services.dart';
-import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,14 +14,26 @@ class Delivery {
   late final LatLng locationLatLng;
   int deliveryAttempts = 0;
 
-  Delivery({required this.locationName, this.note}) {
-    try {
-      id = const Uuid().v4();
-      locationLatLng = Geocoding.getLatLng(locationName);
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+  Delivery._internal({
+    required this.id,
+    required this.locationName,
+    required this.locationLatLng,
+    this.note,
+  });
+
+  static Future<Delivery> create({
+    required String locationName,
+    String? note,
+  }) async {
+    final locationLatLng = await Geocoding.getLatLng(locationName);
+    return Delivery._internal(
+      id: const Uuid().v4(),
+      locationName: locationName,
+      locationLatLng: locationLatLng,
+      note: note,
+    );
   }
+
   Delivery.fromMap(Map<String, dynamic> data)
       : id = data['id'],
         productName = data['productName'],
@@ -33,12 +44,8 @@ class Delivery {
         note = data['note'],
         locationName = data['locationName'],
         deliveryAttempts = data['deliveryAttempts'] ?? 0 {
-    if (data['locationLatLng'] is Map<String, dynamic>) {
-      locationLatLng =
-          LatLng(data['locationLatLng']['lat'], data['locationLatLng']['lng']);
-    } else {
-      locationLatLng = const LatLng(0.0, 0.0);
-    }
+    locationLatLng =
+        LatLng(data['locationLatLng']['lat'], data['locationLatLng']['lng']);
   }
 
   Map<String, dynamic> toMap() {

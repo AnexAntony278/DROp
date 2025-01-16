@@ -4,14 +4,14 @@ import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class CreateRoutePage extends StatefulWidget {
-  const CreateRoutePage({super.key});
+class AddDeliveriesPage extends StatefulWidget {
+  const AddDeliveriesPage({super.key});
 
   @override
-  State<CreateRoutePage> createState() => _CreateRoutePageState();
+  State<AddDeliveriesPage> createState() => _AddDeliveriesPageState();
 }
 
-class _CreateRoutePageState extends State<CreateRoutePage> {
+class _AddDeliveriesPageState extends State<AddDeliveriesPage> {
   final _destinationTextEditingController = TextEditingController();
   final _noteTextEditingController = TextEditingController();
   List<Delivery> deliveries = [];
@@ -19,11 +19,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        label: const Text('Create Route'),
-        icon: const Icon(Icons.play_arrow_rounded),
-      ),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -31,6 +26,15 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         title: const Text("Create Route"),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          debugPrint(List.from(deliveries.map(
+            (e) => e.toMap().toString(),
+          )).toString());
+        },
+        label: const Text('Create Route'),
+        icon: const Icon(Icons.play_arrow_rounded),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,18 +174,23 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       children: [
                         ElevatedButton(
                           child: const Text('ADD DESTINATION'),
-                          onPressed: () {
-                            //TODO : VALIDARE
-                            if (true) {
+                          onPressed: () async {
+                            if (_destinationTextEditingController
+                                .text.isNotEmpty) {
+                              final delivery = await Delivery.create(
+                                  locationName:
+                                      _destinationTextEditingController.text,
+                                  note: _noteTextEditingController.text);
                               setState(() {
-                                final d = Delivery(
-                                    locationName:
-                                        _destinationTextEditingController.text,
-                                    note: _noteTextEditingController.text);
-                                deliveries.add(d);
+                                deliveries.add(delivery);
                                 _destinationTextEditingController.clear();
                                 _noteTextEditingController.clear();
                               });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Select a destination from the Dropdown')));
                             }
                           },
                         ),
