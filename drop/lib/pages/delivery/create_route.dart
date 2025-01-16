@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:drop/app_services/maps_api_services.dart';
+import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../constants/constants.dart';
-import 'package:http/http.dart' as http;
 
 class CreateRoutePage extends StatefulWidget {
   const CreateRoutePage({super.key});
@@ -15,9 +15,8 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   final _destinationTextEditingController = TextEditingController();
   final _noteTextEditingController = TextEditingController();
   List<Map> destinations = [];
-  List<dynamic> _suggestedDestinations = [
-    {'description': 'haa'}
-  ];
+
+  List<dynamic> _suggestedDestinations = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +70,9 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                               if (textEditingValue.text.isEmpty) {
                                 return [];
                               } else {
-                                await _getPredictions(textEditingValue.text);
+                                _suggestedDestinations =
+                                    await MapsAutocomplete.getPredictions(
+                                        textEditingValue.text);
                                 return _suggestedDestinations.map(
                                   (e) => e['description'],
                                 );
@@ -84,6 +85,9 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                 focusNode: focusNode,
                                 onTap: onFieldSubmitted,
                               );
+                            },
+                            onSelected: (option) {
+                              _destinationTextEditingController.text = option;
                             },
                           ),
                         ),
@@ -166,6 +170,10 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         ElevatedButton(
                           child: const Text('ADD DESTINATION'),
                           onPressed: () {
+                            final s = Delivery(
+                                locationName:
+                                    _destinationTextEditingController.text);
+                            // UI change
                             setState(() {
                               destinations.add({
                                 'name': _destinationTextEditingController.text,
@@ -193,9 +201,12 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${destinations[index]['name'] ?? ''}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      FittedBox(
+                        fit: BoxFit.fill,
+                        child: Text(
+                          '${destinations[index]['name'] ?? ''}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       IconButton(
                           onPressed: () {
@@ -214,24 +225,5 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
         ],
       ),
     );
-  }
-
-  Future<void> _getPredictions(String? input) async {
-    //GET PREDICTIONS
-    try {
-      var url = Uri.parse(
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input="$input"&key=$MAPS_API_KEY');
-      await http.get(url).then(
-        (response) {
-          if (response.statusCode == 200) {
-            _suggestedDestinations =
-                List.from(jsonDecode(response.body)['predictions']);
-            setState(() {});
-          }
-        },
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-    }
   }
 }
