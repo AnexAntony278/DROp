@@ -19,6 +19,7 @@ class CreateRoutePage extends StatelessWidget {
           children: [
             GoogleMap(
               initialCameraPosition: CameraPosition(target: LatLng(0, 0)),
+              mapType: MapType.satellite,
             )
           ],
         ),
