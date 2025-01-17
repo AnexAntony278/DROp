@@ -28,10 +28,16 @@ class _AddDeliveriesPageState extends State<AddDeliveriesPage> {
         title: const Text("Create Route"),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        tooltip: "Create delivery route",
         onPressed: () {
-          debugPrint(List.from(deliveries.map(
-            (e) => e.toMap().toString(),
-          )).toString());
+          if (deliveries.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                duration: Duration(seconds: 2),
+                content: Text('Add atleast one delivery to create route')));
+          } else {
+            Navigator.pushNamed(context, 'createroutepage',
+                arguments: deliveries);
+          }
         },
         label: const Text('Create Route'),
         icon: const Icon(Icons.play_arrow_rounded),
@@ -140,6 +146,8 @@ class _AddDeliveriesPageState extends State<AddDeliveriesPage> {
                                             Navigator.pop(context);
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(SnackBar(
+                                                    duration:
+                                                        Duration(seconds: 2),
                                                     content: Text(
                                                         'Invalid QR : $e')));
                                           }
@@ -189,8 +197,9 @@ class _AddDeliveriesPageState extends State<AddDeliveriesPage> {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
+                                      duration: Duration(seconds: 2),
                                       content: Text(
-                                          'Select a destination from the Dropdown')));
+                                          'Select a destination or scan product QR')));
                             }
                           },
                         ),
