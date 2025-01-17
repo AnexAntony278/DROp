@@ -14,3 +14,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+1. Generate an Google Maps API key and store it in /lib/constants/constants.dart as :
+    const String MAPS_API_KEY = 'YOUR_MAPS_API_KEY';
+2. In android/app/src/main/AndroidManifest.xml, Replace "API KEY HERE" with "YOUR_MAPS_API_KEY"
