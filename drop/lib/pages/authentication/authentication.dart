@@ -47,55 +47,59 @@ class _AuthPageState extends State<AuthPage>
   @override
   Widget build(BuildContext context) {
     final isKeyboardUp = MediaQuery.of(context).viewInsets.bottom != 0;
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          if (!isKeyboardUp)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 100, vertical: 10),
-                  child: SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    child: Lottie.asset(
-                      'assets/animations/BoxAnimation.json',
+    return SafeArea(
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            if (!isKeyboardUp)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 100, vertical: 10),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.3,
+                      child: Lottie.asset(
+                        'assets/animations/BoxAnimation.json',
+                      ),
                     ),
                   ),
-                ),
+                ],
+              ),
+            Column(
+              mainAxisAlignment: (isKeyboardUp)
+                  ? MainAxisAlignment.start
+                  : MainAxisAlignment.end,
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: _pageController,
+                    children: [
+                      LoginCard(
+                        cardChange: _changeCardTo,
+                      ),
+                      SignUpCard1(
+                        cardChange: _changeCardTo,
+                      ),
+                      SignUpCard2(
+                        cardChange: _changeCardTo,
+                      ),
+                      SignUpCard3(
+                        cardChange: _changeCardTo,
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: PageView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  controller: _pageController,
-                  children: [
-                    LoginCard(
-                      cardChange: _changeCardTo,
-                    ),
-                    SignUpCard1(
-                      cardChange: _changeCardTo,
-                    ),
-                    SignUpCard2(
-                      cardChange: _changeCardTo,
-                    ),
-                    SignUpCard3(
-                      cardChange: _changeCardTo,
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -158,6 +162,7 @@ class LoginCard extends StatelessWidget {
                       onPressed: () {
                         // TODO: Authenticate Login
                         if (true) {
+                          Navigator.pop(context);
                           Navigator.pushNamed(context, 'homepage');
                         }
                       },

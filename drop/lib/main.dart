@@ -1,6 +1,6 @@
 import 'package:drop/pages/authentication/authentication.dart';
-import 'package:drop/pages/delivery/add_delivery_page.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
+import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
 import 'package:flutter/material.dart';
 
@@ -21,9 +21,9 @@ class MyApp extends StatelessWidget {
         child: AuthPage(),
       ),
       routes: {
-        'homepage': (context) => const HomePage(),
-        'adddeliverypage': (context) => const AddDeliveriesPage(),
-        "createroutepage": (context) => const CreateRoutePage()
+        "homepage": (context) => const HomePage(),
+        "createroutepage": (context) => const CreateRoutePage(),
+        "deliverypage": (context) => const DeliveryPage()
       },
     );
   }
