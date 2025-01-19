@@ -45,7 +45,10 @@ class _HomePageState extends State<HomePage> {
         child: Stack(
           children: [
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, 'adddeliverypage'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, 'createroutepage');
+              },
               child: Card(
                 child: Container(
                   color: Colors.amber,

@@ -17,4 +17,7 @@ samples, guidance on mobile development, and a full API reference.
 
 1. Generate an Google Maps API key and store it in /lib/constants/constants.dart as :
     const String MAPS_API_KEY = 'YOUR_MAPS_API_KEY';
-2. In android/app/src/main/AndroidManifest.xml, Replace "API KEY HERE" with "YOUR_MAPS_API_KEY"
+2. For android support-
+    In android/app/src/main/AndroidManifest.xml file, Replace "API KEY HERE" with your maps API key
+   For web support-
+    In web/index.html file, Replace "YOUR_API_KEY" with your maps API key
