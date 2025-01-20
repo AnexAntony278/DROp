@@ -7,8 +7,13 @@ class DeliveryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Delivery> destinations = Delivery.sampleData;
-    destinations = ModalRoute.of(context)!.settings.arguments as List<Delivery>;
+    List<Delivery> destinations = [];
+    try {
+      destinations =
+          ModalRoute.of(context)!.settings.arguments as List<Delivery>;
+    } catch (e) {
+      destinations = Delivery.sampleData;
+    }
     final PageController pageController = PageController();
 
     return PopScope(
@@ -50,8 +55,10 @@ class DeliveryPage extends StatelessWidget {
           child: Stack(
             children: [
               GoogleMap(
+                polylines: {},
                 markers: Set.from(destinations.map(
                   (e) => Marker(
+                      icon: BitmapDescriptor.defaultMarkerWithHue(12),
                       markerId: MarkerId(e.locationName),
                       position: e.locationLatLng),
                 )),
