@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drop/constants/constants.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,7 +24,7 @@ class MapsAutocomplete {
   //GET PREDICTIONS
   static Future<List> getPredictions(String? input) async {
     var predications = [];
-    var url = Uri.parse(
+    final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json?input="$input"&key=$MAPS_API_KEY');
     await http.get(url).then(
       (response) {
@@ -33,5 +34,25 @@ class MapsAutocomplete {
       },
     );
     return predications;
+  }
+}
+
+class PolyLinePointList {
+  static Future<List<LatLng>> getPolyLineRoute(
+      {required LatLng start, required LatLng end}) async {
+    final List<LatLng> pointList = [];
+    PolylinePoints polyLinePoints = PolylinePoints();
+    PolylineResult result = await polyLinePoints.getRouteBetweenCoordinates(
+        googleApiKey: MAPS_API_KEY,
+        request: PolylineRequest(
+            origin: PointLatLng(start.latitude, start.longitude),
+            destination: PointLatLng(end.latitude, end.longitude),
+            mode: TravelMode.driving));
+    if (result.points.isNotEmpty) {
+      for (PointLatLng point in result.points) {
+        pointList.add(LatLng(point.latitude, point.longitude));
+      }
+    }
+    return pointList;
   }
 }
