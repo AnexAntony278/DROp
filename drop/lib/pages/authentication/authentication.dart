@@ -46,59 +46,68 @@ class _AuthPageState extends State<AuthPage>
 
   @override
   Widget build(BuildContext context) {
-    final isKeyboardUp = MediaQuery.of(context).viewInsets.bottom != 0;
     return SafeArea(
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.black,
-        body: Stack(
-          children: [
-            if (!isKeyboardUp)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 100, vertical: 10),
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.3,
-                      child: Lottie.asset(
-                        'assets/animations/BoxAnimation.json',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            Column(
-              mainAxisAlignment: (isKeyboardUp)
-                  ? MainAxisAlignment.start
-                  : MainAxisAlignment.end,
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: PageView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    controller: _pageController,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: IntrinsicHeight(
+                  child: Stack(
                     children: [
-                      LoginCard(
-                        cardChange: _changeCardTo,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 100, vertical: 10),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.3,
+                              child: Lottie.asset(
+                                'assets/animations/BoxAnimation.json',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      SignUpCard1(
-                        cardChange: _changeCardTo,
-                      ),
-                      SignUpCard2(
-                        cardChange: _changeCardTo,
-                      ),
-                      SignUpCard3(
-                        cardChange: _changeCardTo,
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.7,
+                            child: PageView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              controller: _pageController,
+                              children: [
+                                LoginCard(
+                                  cardChange: _changeCardTo,
+                                ),
+                                SignUpCard1(
+                                  cardChange: _changeCardTo,
+                                ),
+                                SignUpCard2(
+                                  cardChange: _changeCardTo,
+                                ),
+                                SignUpCard3(
+                                  cardChange: _changeCardTo,
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
                       ),
                     ],
                   ),
-                )
-              ],
-            ),
-          ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -482,11 +491,11 @@ class SignUpCard3 extends StatelessWidget {
                       onPressed: () {
                         if (_formKeys[3].currentState?.validate() ?? false) {
                           _user['password'] = passwordEditingController.text;
-                          http.post(
-                            Uri.http(NODE_SERVER_URL),
-                            body: jsonEncode(_user),
-                            headers: {'Content-Type': 'application/json'},
-                          );
+                          // http.post(
+                          //   Uri.http(NODE_SERVER_URL),
+                          //   body: jsonEncode(_user),
+                          //   headers: {'Content-Type': 'application/json'},
+                          // );
                         }
                       },
                       child: const Text('SIGN IN')),

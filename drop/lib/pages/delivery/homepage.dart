@@ -33,10 +33,6 @@ class _HomePageState extends State<HomePage> {
               title: const Text('Item 1'),
               onTap: () {},
             ),
-            ListTile(
-              title: const Text('Item 2'),
-              onTap: () {},
-            ),
           ],
         ),
       ),
@@ -46,7 +42,6 @@ class _HomePageState extends State<HomePage> {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.pop(context);
                 Navigator.pushNamed(context, 'createroutepage');
               },
               child: Card(
