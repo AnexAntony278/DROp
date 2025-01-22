@@ -1,13 +1,30 @@
+import 'package:drop/app_services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-class DeliveryPage extends StatelessWidget {
+class DeliveryPage extends StatefulWidget {
   const DeliveryPage({super.key});
 
   @override
+  State<DeliveryPage> createState() => _DeliveryPageState();
+}
+
+class _DeliveryPageState extends State<DeliveryPage> {
+  List<Delivery> destinations = [];
+  List<LatLng> routePolyLinePoints = [];
+
+  @override
+  void didChangeDependencies() {
+    drawRoute().then(
+      (value) => debugPrint("routePolyLinePoints.toString()"),
+    );
+    super.didChangeDependencies();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    List<Delivery> destinations = [];
+    ///TODO: clean
     try {
       destinations =
           ModalRoute.of(context)!.settings.arguments as List<Delivery>;
@@ -43,7 +60,6 @@ class DeliveryPage extends StatelessWidget {
             false;
         if (context.mounted && shouldPop) {
           Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
         }
       },
       child: Scaffold(
@@ -55,7 +71,14 @@ class DeliveryPage extends StatelessWidget {
           child: Stack(
             children: [
               GoogleMap(
-                polylines: {},
+                polylines: {
+                  Polyline(
+                    polylineId: const PolylineId('value'),
+                    points: routePolyLinePoints,
+                    color: Colors.lightBlue,
+                    width: 5,
+                  )
+                },
                 markers: Set.from(destinations.map(
                   (e) => Marker(
                       icon: BitmapDescriptor.defaultMarkerWithHue(12),
@@ -80,10 +103,33 @@ class DeliveryPage extends StatelessWidget {
                             vertical: 8, horizontal: 10),
                         child: Card(
                             child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Center(
-                              child:
-                                  Text(destinations[index].toMap().toString())),
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    size: 25,
+                                    Icons.location_on,
+                                    color: Colors.red,
+                                  ),
+                                  Text(destinations[index].locationName),
+                                ],
+                              ),
+                              if (destinations[index].note != null &&
+                                  destinations[index].note != '')
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      size: 25,
+                                      Icons.note_rounded,
+                                      color: Colors.blue,
+                                    ),
+                                    Text(destinations[index].note ?? ""),
+                                  ],
+                                ),
+                            ],
+                          ),
                         )),
                       ),
                     ),
@@ -95,5 +141,20 @@ class DeliveryPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> drawRoute() async {
+    for (var i = 0; i < destinations.length - 1; i++) {
+      await PolyLinePointList.getPolyLineRoute(
+              start: destinations[i].locationLatLng,
+              end: destinations[i + 1].locationLatLng)
+          .then(
+        (value) {
+          routePolyLinePoints.addAll(value);
+        },
+      );
+    }
+    routePolyLinePoints.removeLast();
+    setState(() {});
   }
 }

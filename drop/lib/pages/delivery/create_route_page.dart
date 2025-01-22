@@ -19,8 +19,12 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: deliveries.isEmpty,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
+        if (deliveries.isEmpty) {
+          Navigator.pop(context);
+          return;
+        }
         final bool shouldPop = await showDialog<bool>(
                 context: context,
                 builder: (context) {
@@ -46,7 +50,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
             false;
         if (context.mounted && shouldPop) {
           Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
         }
       },
       child: Scaffold(
@@ -207,8 +210,8 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                               Navigator.pop(context);
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                      duration:
-                                                          Duration(seconds: 2),
+                                                      duration: const Duration(
+                                                          seconds: 2),
                                                       content: Text(
                                                           'Invalid QR : $e')));
                                             }
