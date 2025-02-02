@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:drop/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:drop/app_services/input_validator.dart';
+import 'package:drop/services/input_validator.dart';
 import 'package:lottie/lottie.dart';
 
 Map<String, dynamic> _user = {};
@@ -12,7 +12,7 @@ final List<GlobalKey<FormState>> _formKeys = [
   GlobalKey<FormState>(),
   GlobalKey<FormState>(),
 ];
-
+//TODO: solve textfield problem
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 
@@ -33,9 +33,9 @@ class _AuthPageState extends State<AuthPage>
 
   @override
   void initState() {
-    super.initState();
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 2300));
+    super.initState();
   }
 
   @override
@@ -491,11 +491,11 @@ class SignUpCard3 extends StatelessWidget {
                       onPressed: () {
                         if (_formKeys[3].currentState?.validate() ?? false) {
                           _user['password'] = passwordEditingController.text;
-                          // http.post(
-                          //   Uri.http(NODE_SERVER_URL),
-                          //   body: jsonEncode(_user),
-                          //   headers: {'Content-Type': 'application/json'},
-                          // );
+                          http.post(
+                            Uri.http(NODE_SERVER_URL),
+                            body: jsonEncode(_user),
+                            headers: {'Content-Type': 'application/json'},
+                          );
                         }
                       },
                       child: const Text('SIGN IN')),

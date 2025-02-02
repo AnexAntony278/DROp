@@ -1,4 +1,4 @@
-import 'package:drop/app_services/maps_api_services.dart';
+import 'package:drop/services/maps_api_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -74,10 +74,34 @@ class Delivery {
 
   static List<Delivery> sampleData = List.from([
     {
+      "id": "4",
+      "locationName": "Wayanad Forest Reserve",
+      "locationLatLng": {"lat": 11.6854, "lng": 76.1320},
+      "note": "Delivery only allowed during daytime.",
+      "status": "FAILED",
+      "deliveryAttempts": 3,
+    },
+    {
       "id": "1",
       "locationName": "Thrissur Town",
       "locationLatLng": {"lat": 10.5276, "lng": 76.2144},
       "note": "Main delivery hub",
+      "status": "IN_STOCK",
+      "deliveryAttempts": 0,
+    },
+    {
+      "id": "7",
+      "locationName": "Munnar Hill Station - Extra long note for testing",
+      "locationLatLng": {"lat": 10.0889, "lng": 77.0595},
+      "note": "High-altitude delivery. Confirm weather conditions.",
+      "status": "DELIVERED",
+      "deliveryAttempts": 1,
+    },
+    {
+      "id": "8",
+      "locationName": "Silent Valley National Park",
+      "locationLatLng": {"lat": 11.0763, "lng": 76.6084},
+      "note": "Remote area. Requires additional charges.",
       "status": "IN_STOCK",
       "deliveryAttempts": 0,
     },
@@ -99,14 +123,6 @@ class Delivery {
       "deliveryAttempts": 2,
     },
     {
-      "id": "4",
-      "locationName": "Wayanad Forest Reserve",
-      "locationLatLng": {"lat": 11.6854, "lng": 76.1320},
-      "note": "Delivery only allowed during daytime.",
-      "status": "FAILED",
-      "deliveryAttempts": 3,
-    },
-    {
       "id": "5",
       "locationName": "Alappuzha Beach - End of the street",
       "locationLatLng": {"lat": 9.4981, "lng": 76.3388},
@@ -120,22 +136,6 @@ class Delivery {
       "locationLatLng": {"lat": 8.8932, "lng": 76.6141},
       "note": "",
       "status": "OUT_FOR_DELIVERY",
-      "deliveryAttempts": 0,
-    },
-    {
-      "id": "7",
-      "locationName": "Munnar Hill Station - Extra long note for testing",
-      "locationLatLng": {"lat": 10.0889, "lng": 77.0595},
-      "note": "High-altitude delivery. Confirm weather conditions.",
-      "status": "DELIVERED",
-      "deliveryAttempts": 1,
-    },
-    {
-      "id": "8",
-      "locationName": "Silent Valley National Park",
-      "locationLatLng": {"lat": 11.0763, "lng": 76.6084},
-      "note": "Remote area. Requires additional charges.",
-      "status": "IN_STOCK",
       "deliveryAttempts": 0,
     },
   ].map(

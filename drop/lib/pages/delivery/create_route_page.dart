@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:drop/app_services/maps_api_services.dart';
+import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -94,6 +94,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   false;
               if (sure && context.mounted) {
                 Navigator.pop(context);
+
                 Navigator.pushNamed(context, 'deliverypage',
                     arguments: deliveries);
               }
@@ -247,7 +248,15 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                           ElevatedButton(
                             child: const Text('ADD DESTINATION'),
                             onPressed: () async {
-                              if (_destinationTextEditingController
+                              if (deliveries.any((destination) =>
+                                  destination.locationName ==
+                                  _destinationTextEditingController.text)) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        duration: Duration(seconds: 2),
+                                        content:
+                                            Text('Location already added')));
+                              } else if (_destinationTextEditingController
                                   .text.isNotEmpty) {
                                 final delivery = await Delivery.create(
                                     locationName:
@@ -281,26 +290,43 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   child: ListTile(
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '#${index + 1}',
+                          style: const TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const VerticalDivider(
+                          thickness: 3,
+                          endIndent: 10,
+                        )
+                      ],
+                    ),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        FittedBox(
-                          fit: BoxFit.fill,
+                        Expanded(
                           child: Text(
                             deliveries[index].locationName,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        IconButton(
-                            onPressed: () {
-                              setState(() {
-                                deliveries.removeAt(index);
-                              });
-                            },
-                            icon: const Icon(Icons.close))
                       ],
                     ),
-                    subtitle: Text(deliveries[index].note ?? ''),
+                    subtitle: Text(
+                      deliveries[index].note ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            deliveries.removeAt(index);
+                          });
+                        },
+                        icon: const Icon(Icons.close)),
                   ),
                 ),
               ),

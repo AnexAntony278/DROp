@@ -45,11 +45,14 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pushNamed(context, 'createroutepage');
               },
               child: Card(
+                elevation: 6,
                 child: Container(
-                  color: Colors.amber,
                   height: 100,
                   width: double.infinity,
-                  child: const Icon(Icons.add),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    size: 50,
+                  ),
                 ),
               ),
             )

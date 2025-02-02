@@ -3,6 +3,7 @@ import 'package:drop/constants/constants.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 
 class Geocoding {
   // Geocoding
@@ -54,5 +55,16 @@ class PolyLinePointList {
       }
     }
     return pointList;
+  }
+}
+
+class LocationServices {
+  final Location location = Location();
+  Future<bool> checkLocationPermission() async {
+    PermissionStatus permission = await location.hasPermission();
+    if (permission == PermissionStatus.denied) {
+      permission = await location.requestPermission();
+    }
+    return permission == PermissionStatus.granted;
   }
 }
