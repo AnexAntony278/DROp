@@ -75,9 +75,10 @@ class Delivery {
   static List<Delivery> sampleData = List.from([
     {
       "id": "4",
-      "locationName": "Wayanad Forest Reserve",
+      "locationName": "Wayanad Forest RSRV",
       "locationLatLng": {"lat": 11.6854, "lng": 76.1320},
       "note": "Delivery only allowed during daytime.",
+      "ownerName": "Anandu Dinacharyan H . D",
       "status": "FAILED",
       "deliveryAttempts": 3,
     },
@@ -87,6 +88,7 @@ class Delivery {
       "locationLatLng": {"lat": 10.5276, "lng": 76.2144},
       "note": "Main delivery hub",
       "status": "IN_STOCK",
+      "ownerName": "Anandu Dinacharyan H . D",
       "deliveryAttempts": 0,
     },
     {
@@ -94,6 +96,7 @@ class Delivery {
       "locationName": "Munnar Hill Station - Extra long note for testing",
       "locationLatLng": {"lat": 10.0889, "lng": 77.0595},
       "note": "High-altitude delivery. Confirm weather conditions.",
+      "ownerName": "Anandu Dinacharyan H . D",
       "status": "DELIVERED",
       "deliveryAttempts": 1,
     },
@@ -102,6 +105,7 @@ class Delivery {
       "locationName": "Silent Valley National Park",
       "locationLatLng": {"lat": 11.0763, "lng": 76.6084},
       "note": "Remote area. Requires additional charges.",
+      "ownerName": "Anandu Dinacharyan H . D",
       "status": "IN_STOCK",
       "deliveryAttempts": 0,
     },

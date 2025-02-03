@@ -236,6 +236,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         ),
                       ),
                       TextField(
+                        maxLength: 100,
                         style: const TextStyle(fontSize: 15),
                         maxLines: 3,
                         minLines: 2,
