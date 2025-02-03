@@ -3,6 +3,7 @@ import 'package:drop/constants/constants.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 
@@ -20,17 +21,18 @@ class _DeliveryPageState extends State<DeliveryPage> {
 
   final PageController pageController = PageController();
   late GoogleMapController mapController;
-  var cardExpanded = false;
+  var isCardExpanded = false;
 
   @override
   void didChangeDependencies() {
-    try {
-      //TODO : CLEAN
-      destinations =
-          ModalRoute.of(context)!.settings.arguments as List<Delivery>;
-    } catch (e) {
-      destinations = Delivery.sampleData;
-    }
+    // try {
+    //   //TODO : CLEAN
+    //   destinations =
+    //       ModalRoute.of(context)!.settings.arguments as List<Delivery>;
+    // } catch (e) {
+    //   destinations = Delivery.sampleData;
+    // }
+    destinations = Delivery.sampleData;
     _getUserLocation();
     _getRoute();
     super.didChangeDependencies();
@@ -99,10 +101,12 @@ class _DeliveryPageState extends State<DeliveryPage> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    icon: (cardExpanded)
+                    padding: const EdgeInsets.all(0),
+                    constraints: const BoxConstraints(maxHeight: 30),
+                    icon: (isCardExpanded)
                         ? const Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            size: 50,
+                            size: 60,
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -113,7 +117,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                           )
                         : const Icon(
                             Icons.keyboard_arrow_up_rounded,
-                            size: 50,
+                            size: 60,
                             color: Colors.white,
                             shadows: [
                               Shadow(
@@ -122,61 +126,199 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                   offset: Offset(0, 0))
                             ],
                           ),
-                    onPressed: () {
-                      setState(() {
-                        cardExpanded = !cardExpanded;
-                      });
-                    },
+                    onPressed: _toggleCardSize,
                   ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    height: (cardExpanded)
-                        ? MediaQuery.of(context).size.height / 3
-                        : MediaQuery.of(context).size.height / 4,
-                    child: PageView.builder(
-                      itemCount: destinations.length,
-                      controller: pageController,
-                      itemBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 10),
-                        child: Card(
-                            child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    size: 25,
-                                    Icons.location_on,
-                                    color: Colors.red,
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      destinations[index].locationName,
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
-                                          fontStyle: FontStyle.normal),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (destinations[index].note != null &&
-                                  destinations[index].note != '')
-                                Row(
+                  GestureDetector(
+                    onTap: _toggleCardSize,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      height: (isCardExpanded)
+                          ? MediaQuery.of(context).size.height / 2.9
+                          : MediaQuery.of(context).size.height / 4.2,
+                      child: PageView.builder(
+                        itemCount: destinations.length,
+                        controller: pageController,
+                        itemBuilder: (context, index) => Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8, horizontal: 10),
+                          child: Card(
+                              color: const Color.fromARGB(255, 234, 234, 234),
+                              elevation: 10,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20.0),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      size: 25,
-                                      Icons.note_rounded,
-                                      color: Colors.blue,
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        IntrinsicHeight(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "#${index + 1}",
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.w900,
+                                                    fontSize: 15),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  const Text("DELIVERED :  "),
+                                                  SizedBox(
+                                                    height: 25,
+                                                    width: 35,
+                                                    child: GestureDetector(
+                                                      onTap: () =>
+                                                          _toggleDeliveryStatus(
+                                                              index),
+                                                      child: Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: destinations[
+                                                                          index]
+                                                                      .status ==
+                                                                  "IN_STOCK"
+                                                              ? Colors.red
+                                                              : Colors.green,
+                                                          shape: BoxShape
+                                                              .rectangle,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                  4), // Optional: rounded corners
+                                                        ),
+                                                        child: Center(
+                                                          child: Icon(
+                                                            (destinations[index]
+                                                                        .status ==
+                                                                    "IN_STOCK")
+                                                                ? Icons
+                                                                    .close_rounded
+                                                                : Icons
+                                                                    .check_rounded,
+                                                            color: Colors.white,
+                                                            size: 20,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Divider(
+                                          height: 5,
+                                          color:
+                                              Color.fromARGB(50, 128, 128, 128),
+                                        ),
+                                      ],
                                     ),
-                                    Text(destinations[index].note ?? ""),
+                                    Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          const Icon(
+                                            Icons.location_city,
+                                            color:
+                                                Color.fromRGBO(64, 64, 64, 1),
+                                          ),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                destinations[index]
+                                                    .locationName,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Color.fromRGBO(
+                                                      64, 64, 64, 1),
+                                                ),
+                                                textAlign: TextAlign.right,
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 3,
+                                              ))
+                                        ]),
+                                    if (isCardExpanded &&
+                                        (destinations[index].ownerName ?? '')
+                                            .isNotEmpty)
+                                      Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Icon(
+                                              Icons.person,
+                                              color: Colors.black,
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  destinations[index]
+                                                          .ownerName ??
+                                                      "",
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 20),
+                                                ),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    launchUrl(Uri.parse(
+                                                        'tel:${destinations[index].phone}'));
+                                                  },
+                                                  child: const Row(
+                                                    children: [
+                                                      Icon(Icons.call),
+                                                      Text(" CALL")
+                                                    ],
+                                                  ),
+                                                )
+                                              ],
+                                            )
+                                          ]),
+                                    Flexible(
+                                      child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          spacing: 40,
+                                          children: [
+                                            const Icon(
+                                              Icons.note_alt,
+                                              color:
+                                                  Color.fromRGBO(64, 64, 64, 1),
+                                            ),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                destinations[index].note ?? '',
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines:
+                                                    (isCardExpanded) ? 5 : 2,
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            )
+                                          ]),
+                                    ),
                                   ],
                                 ),
-                            ],
-                          ),
-                        )),
+                              )),
+                        ),
                       ),
                     ),
                   ),
@@ -222,6 +364,26 @@ class _DeliveryPageState extends State<DeliveryPage> {
           }));
     });
 
-    mapController.animateCamera(CameraUpdate.newLatLng(userLocation!));
+    mapController.animateCamera(CameraUpdate.newLatLng(userLocation));
+  }
+
+  _toggleDeliveryStatus(int i) {
+    setState(() {
+      if (destinations[i].status == "IN_STOCK") {
+        destinations[i].status = "DELIVERED";
+
+        pageController.animateToPage((i + 1),
+            duration: const Duration(milliseconds: 800),
+            curve: Curves.linearToEaseOut);
+      } else {
+        destinations[i].status = "IN_STOCK";
+      }
+    });
+  }
+
+  _toggleCardSize() {
+    setState(() {
+      isCardExpanded = !isCardExpanded;
+    });
   }
 }
