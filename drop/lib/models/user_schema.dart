@@ -1,33 +1,36 @@
-import 'package:uuid/uuid.dart';
-
 class User {
   late final String id;
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phone;
-  final String password;
-  final String role; // MANAGER | AGENT
-  final String? managerId;
+  late final String name;
+  late final String email;
+  late final String phone;
+  late final String password;
+  late final String role; // MANAGER | AGENT
+  String? managerId; // Removed 'late' to allow nullability
   late final DateTime createdAt;
 
-  User(
-      {required this.firstName,
-      required this.lastName,
-      required this.email,
-      required this.phone,
-      required this.password,
-      required this.role,
-      required this.managerId}) {
-    id = const Uuid().v4(); // Initializes random UuId
+  User({
+    required this.name,
+    required this.email,
+    required this.phone,
+  }) {
     createdAt = DateTime.now();
+  }
+
+  User.fromMap(Map<String, dynamic> map) {
+    id = map['id'] ?? '';
+    name = map['firstName'] ?? '';
+    email = map['email'] ?? '';
+    phone = map['phone'] ?? '';
+    password = map['password'] ?? '';
+    role = map['role'] ?? 'AGENT';
+    managerId = map['managerId'];
+    createdAt = DateTime.tryParse(map['createdAt'] ?? '') ?? DateTime.now();
   }
 
   Map<String, dynamic> toMap() {
     return {
       "id": id,
-      "firstName": firstName,
-      "lastName": lastName,
+      "name": name,
       "email": email,
       "phone": phone,
       "password": password,

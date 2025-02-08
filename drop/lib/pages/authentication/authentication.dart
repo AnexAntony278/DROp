@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:drop/services/input_validator.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Map<String, dynamic> _user = {};
 final List<GlobalKey<FormState>> _formKeys = [
@@ -12,6 +13,7 @@ final List<GlobalKey<FormState>> _formKeys = [
   GlobalKey<FormState>(),
   GlobalKey<FormState>(),
 ];
+
 //TODO: solve textfield problem
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -114,13 +116,19 @@ class _AuthPageState extends State<AuthPage>
   }
 }
 
-class LoginCard extends StatelessWidget {
+class LoginCard extends StatefulWidget {
   final Function cardChange;
-  LoginCard({super.key, required this.cardChange});
+  const LoginCard({super.key, required this.cardChange});
 
-  final TextEditingController usernameEditingController =
+  @override
+  State<LoginCard> createState() => _LoginCardState();
+}
+
+class _LoginCardState extends State<LoginCard> {
+  final TextEditingController _usernameEditingController =
       TextEditingController();
-  final TextEditingController passwordEditingController =
+
+  final TextEditingController _passwordEditingController =
       TextEditingController();
 
   @override
@@ -148,7 +156,7 @@ class LoginCard extends StatelessWidget {
                         fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
                   ),
                   TextFormField(
-                    controller: usernameEditingController,
+                    controller: _usernameEditingController,
                   ),
                   const Text(
                     'Password',
@@ -156,7 +164,7 @@ class LoginCard extends StatelessWidget {
                         fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
                   ),
                   TextFormField(
-                    controller: passwordEditingController,
+                    controller: _passwordEditingController,
                     obscureText: true,
                   ),
                 ],
@@ -169,7 +177,7 @@ class LoginCard extends StatelessWidget {
                 children: [
                   ElevatedButton(
                       onPressed: () {
-                        // TODO: Authenticate Login
+                        // TODO: Authentitry
                         if (true) {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, 'homepage');
@@ -185,7 +193,7 @@ class LoginCard extends StatelessWidget {
                             fontStyle: FontStyle.italic),
                       ),
                       onPressed: () {
-                        cardChange(1);
+                        widget.cardChange(1);
                       })
                 ],
               )
@@ -197,13 +205,22 @@ class LoginCard extends StatelessWidget {
   }
 }
 
-class SignUpCard1 extends StatelessWidget {
+class SignUpCard1 extends StatefulWidget {
   final Function cardChange;
   SignUpCard1({super.key, required this.cardChange});
-  final TextEditingController usernameEditingController =
+
+  @override
+  State<SignUpCard1> createState() => _SignUpCard1State();
+}
+
+class _SignUpCard1State extends State<SignUpCard1> {
+  final TextEditingController _usernameEditingController =
       TextEditingController();
-  final TextEditingController emailEditingController = TextEditingController();
-  final TextEditingController mobileEditingController = TextEditingController();
+
+  final TextEditingController _emailEditingController = TextEditingController();
+
+  final TextEditingController _phoneEditingController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -226,17 +243,17 @@ class SignUpCard1 extends StatelessWidget {
                   const Text('Username'),
                   TextFormField(
                     validator: InputValidator.validateUsername,
-                    controller: usernameEditingController,
+                    controller: _usernameEditingController,
                   ),
                   const Text('E-Mail'),
                   TextFormField(
                     validator: InputValidator.validateEmail,
-                    controller: emailEditingController,
+                    controller: _emailEditingController,
                   ),
                   const Text('Mobile No.'),
                   TextFormField(
                     validator: InputValidator.validateMobile,
-                    controller: mobileEditingController,
+                    controller: _phoneEditingController,
                   ),
                 ],
               ),
@@ -251,14 +268,14 @@ class SignUpCard1 extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                             fontStyle: FontStyle.italic),
                       ),
-                      onPressed: () => {cardChange(0)}),
+                      onPressed: () => {widget.cardChange(0)}),
                   TextButton(
                       onPressed: () {
                         if (_formKeys[1].currentState?.validate() ?? false) {
-                          _user['name'] = usernameEditingController.text;
-                          _user['email'] = emailEditingController.text;
-                          _user['mobile'] = mobileEditingController.text;
-                          cardChange(2);
+                          _user['name'] = _usernameEditingController.text;
+                          _user['email'] = _emailEditingController.text;
+                          _user['phone'] = _phoneEditingController.text;
+                          widget.cardChange(2);
                         }
                         //DEBUGGING EASE
                         // cardChange(2);
@@ -406,8 +423,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                                 _user['mangerId'] =
                                     managerEditingController.text;
                                 widget.cardChange(3);
-                              } //DEBUGGING EASE
-                              // widget.cardChange(3);
+                              }
                             },
                             child: const Text('next >>')),
                       ],
@@ -419,92 +435,113 @@ class _SignUpCard2State extends State<SignUpCard2> {
   }
 }
 
-class SignUpCard3 extends StatelessWidget {
+class SignUpCard3 extends StatefulWidget {
   final Function cardChange;
-  SignUpCard3({super.key, required this.cardChange});
-  final TextEditingController passwordEditingController =
+  const SignUpCard3({super.key, required this.cardChange});
+
+  @override
+  State<SignUpCard3> createState() => _SignUpCard3State();
+}
+
+class _SignUpCard3State extends State<SignUpCard3> {
+  final TextEditingController _passwordEditingController =
       TextEditingController();
-  final TextEditingController confirmPasswordEditingController =
+  final TextEditingController _confirmPasswordEditingController =
       TextEditingController();
+
+  @override
+  void dispose() {
+    _passwordEditingController.dispose();
+    _confirmPasswordEditingController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.7,
       width: MediaQuery.of(context).size.width,
       child: Card(
-          child: Padding(
-        padding:
-            const EdgeInsets.only(top: 100, bottom: 50, left: 50, right: 50),
-        child: Form(
-          key: _formKeys[3],
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Password',
-                    style: TextStyle(
-                        fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
-                  ),
-                  TextFormField(
-                    validator: InputValidator.validatePassword,
-                    controller: passwordEditingController,
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  const Text(
-                    'Confirm Password',
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextFormField(
-                    validator: (value) {
-                      return InputValidator.confirmPassword(
-                          value, passwordEditingController.text);
-                    },
-                    controller: confirmPasswordEditingController,
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                      child: const Text(
-                        '<< back',
+        child: Padding(
+          padding:
+              const EdgeInsets.only(top: 100, bottom: 50, left: 50, right: 50),
+          child: Form(
+            key: _formKeys[3],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Password',
                         style: TextStyle(
                             fontFamily: 'Montserrat',
-                            fontWeight: FontWeight.w500,
-                            fontStyle: FontStyle.italic),
-                      ),
-                      onPressed: () => {cardChange(2)}),
-                  ElevatedButton(
-                      onPressed: () {
-                        if (_formKeys[3].currentState?.validate() ?? false) {
-                          _user['password'] = passwordEditingController.text;
-                          http.post(
-                            Uri.http(NODE_SERVER_URL),
-                            body: jsonEncode(_user),
-                            headers: {'Content-Type': 'application/json'},
-                          );
-                        }
-                      },
-                      child: const Text('SIGN IN')),
-                ],
-              )
-            ],
+                            fontWeight: FontWeight.bold)),
+                    TextFormField(
+                        validator: InputValidator.validatePassword,
+                        controller: _passwordEditingController),
+                    const SizedBox(height: 20),
+                    const Text('Confirm Password',
+                        style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontWeight: FontWeight.bold)),
+                    TextFormField(
+                      validator: (value) => InputValidator.confirmPassword(
+                          value, _passwordEditingController.text),
+                      controller: _confirmPasswordEditingController,
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      child: const Text('<< back',
+                          style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontWeight: FontWeight.w500,
+                              fontStyle: FontStyle.italic)),
+                      onPressed: () => widget.cardChange(2),
+                    ),
+                    ElevatedButton(
+                        onPressed: handleSignup, child: const Text('SIGN UP')),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
-      )),
+      ),
     );
+  }
+
+  void handleSignup() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (_formKeys[3].currentState?.validate() ?? false) {
+      _user['password'] = _passwordEditingController.text;
+      try {
+        final response = await http.post(
+          Uri.parse("$NODE_SERVER_URL/signup"),
+          body: jsonEncode(_user),
+          headers: {'Content-Type': 'application/json'},
+        );
+        if (!context.mounted) return;
+        if (response.statusCode == 200) {
+          await prefs.setString(
+              'user_token', jsonDecode(response.body)['user_token']);
+          Navigator.pop(context);
+          Navigator.pushNamed(context, 'homepage');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Login error:${response.body}")));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text("Login error:$e")));
+        }
+      }
+    }
   }
 }
