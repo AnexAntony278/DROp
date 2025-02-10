@@ -14,7 +14,6 @@ final List<GlobalKey<FormState>> _formKeys = [
   GlobalKey<FormState>(),
 ];
 
-//TODO: solve textfield problem
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
 
@@ -130,6 +129,7 @@ class _LoginCardState extends State<LoginCard> {
 
   final TextEditingController _passwordEditingController =
       TextEditingController();
+  String _errorMessage = "";
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +143,7 @@ class _LoginCardState extends State<LoginCard> {
         child: Form(
           key: _formKeys[0],
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
@@ -167,6 +167,11 @@ class _LoginCardState extends State<LoginCard> {
                     controller: _passwordEditingController,
                     obscureText: true,
                   ),
+                  Text(
+                    _errorMessage,
+                    style: const TextStyle(
+                        color: Colors.red, fontStyle: FontStyle.italic),
+                  )
                 ],
               ),
               const SizedBox(
@@ -176,11 +181,26 @@ class _LoginCardState extends State<LoginCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
-                      onPressed: () {
-                        // TODO: Authentitry
-                        if (true) {
+                      onPressed: () async {
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        final response =
+                            await http.post(Uri.parse("$NODE_SERVER_URL/login"),
+                                headers: {"Content-Type": "application/json"},
+                                body: jsonEncode({
+                                  "name_or_email":
+                                      _usernameEditingController.text,
+                                  "password": _passwordEditingController.text
+                                }));
+                        if (response.statusCode == 200 && context.mounted) {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, 'homepage');
+                          await prefs.setString('user_token',
+                              jsonDecode(response.body)['user_token']);
+                        } else {
+                          setState(() {
+                            _errorMessage = response.body;
+                          });
                         }
                       },
                       child: const Text('LOGIN')),
@@ -207,7 +227,7 @@ class _LoginCardState extends State<LoginCard> {
 
 class SignUpCard1 extends StatefulWidget {
   final Function cardChange;
-  SignUpCard1({super.key, required this.cardChange});
+  const SignUpCard1({super.key, required this.cardChange});
 
   @override
   State<SignUpCard1> createState() => _SignUpCard1State();
@@ -240,17 +260,26 @@ class _SignUpCard1State extends State<SignUpCard1> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Username'),
+                  const Text('Username',
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold)),
                   TextFormField(
                     validator: InputValidator.validateUsername,
                     controller: _usernameEditingController,
                   ),
-                  const Text('E-Mail'),
+                  const Text('E-Mail',
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold)),
                   TextFormField(
                     validator: InputValidator.validateEmail,
                     controller: _emailEditingController,
                   ),
-                  const Text('Mobile No.'),
+                  const Text('Mobile No.',
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.bold)),
                   TextFormField(
                     validator: InputValidator.validateMobile,
                     controller: _phoneEditingController,
