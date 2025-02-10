@@ -9,8 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final String? userToken = prefs.getString('user_token');
-  debugPrint(userToken);
-
+  debugPrint("\n\n $userToken");
   runApp(MyApp(isLoggedIn: (userToken != null && userToken.isNotEmpty)));
 }
 
@@ -24,7 +23,7 @@ class MyApp extends StatelessWidget {
       title: 'DROp',
       theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color.fromARGB(255, 255, 221, 134)),
+              seedColor: const Color.fromARGB(255, 158, 244, 244)),
           fontFamily: 'Montserrat'),
       home: isLoggedIn ? const HomePage() : const AuthPage(),
       routes: {
