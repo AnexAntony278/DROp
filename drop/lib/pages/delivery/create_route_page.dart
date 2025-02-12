@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class CreateRoutePage extends StatefulWidget {
@@ -59,7 +61,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
             onPressed: () => Navigator.pop(context),
           ),
           backgroundColor: Theme.of(context).primaryColor,
-          title: const Text("`Create` Route"),
+          title: const Text("Create Route"),
         ),
         floatingActionButton: FloatingActionButton.extended(
           tooltip: "Create delivery route",
@@ -93,10 +95,17 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       }) ??
                   false;
               if (sure && context.mounted) {
+                //CREATE DELIVERY ROUTE
+                final userLocation =
+                    await LocationServices().getCurrentLocation();
+                final deliveryRoute = DeliveryRoute.create(
+                    deliveries: deliveries, startLocation: userLocation);
+                debugPrint(deliveryRoute.toString());
+                //TODO: Optimize Route
+                //TODO: Save route as file
                 Navigator.pop(context);
-
                 Navigator.pushNamed(context, 'deliverypage',
-                    arguments: deliveries);
+                    arguments: deliveryRoute);
               }
             }
           },

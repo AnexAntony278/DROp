@@ -4,20 +4,27 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+import 'package:flutter/material.dart';
 
 class Geocoding {
   // Geocoding
+
   static Future<LatLng> getLatLng(String input) async {
-    final url = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json?address=$input&key=$MAPS_API_KEY');
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      Map locationData = jsonDecode(response.body)['results'][0]['geometry']
-          ['location'] as Map<String, dynamic>;
-      return LatLng(locationData['lat'], locationData['lng']);
-    } else {
-      throw Exception("Failed to fetch location data");
+    try {
+      final url = Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?address=$input&key=$MAPS_API_KEY');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        Map locationData = jsonDecode(response.body)['results'][0]['geometry']
+            ['location'] as Map<String, dynamic>;
+        return LatLng(locationData['lat'], locationData['lng']);
+      } else {
+        throw Exception("Failed to fetch location data");
+      }
+    } catch (e) {
+      debugPrint(e.toString());
     }
+    return LatLng(0, 0);
   }
 }
 
@@ -59,12 +66,19 @@ class PolyLinePointList {
 }
 
 class LocationServices {
-  final Location location = Location();
-  Future<bool> checkLocationPermission() async {
-    PermissionStatus permission = await location.hasPermission();
+  final Location _location = Location();
+
+  Future<LatLng> getCurrentLocation() async {
+    PermissionStatus permission = await _location.hasPermission();
     if (permission == PermissionStatus.denied) {
-      permission = await location.requestPermission();
+      permission = await _location.requestPermission();
     }
-    return permission == PermissionStatus.granted;
+    if (permission == PermissionStatus.granted) {
+      LocationData locationData = await _location.getLocation();
+      return LatLng(
+          locationData.latitude ?? 0.0, locationData.longitude ?? 0.0);
+    } else {
+      throw Exception('Location Not accessible');
+    }
   }
 }

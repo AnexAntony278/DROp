@@ -182,26 +182,27 @@ class _LoginCardState extends State<LoginCard> {
                 children: [
                   ElevatedButton(
                       onPressed: () async {
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        final response =
-                            await http.post(Uri.parse("$NODE_SERVER_URL/login"),
-                                headers: {"Content-Type": "application/json"},
-                                body: jsonEncode({
-                                  "name_or_email":
-                                      _usernameEditingController.text,
-                                  "password": _passwordEditingController.text
-                                }));
-                        if (response.statusCode == 200 && context.mounted) {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, 'homepage');
-                          await prefs.setString('user_token',
-                              jsonDecode(response.body)['user_token']);
-                        } else {
-                          setState(() {
-                            _errorMessage = response.body;
-                          });
-                        }
+                        // TODO: REMOVE DEBUG CODE
+                        // final response =
+                        //     await http.post(Uri.parse("$NODE_SERVER_URL/login"),
+                        //         headers: {"Content-Type": "application/json"},
+                        //         body: jsonEncode({
+                        //           "name_or_email":
+                        //               _usernameEditingController.text,
+                        //           "password": _passwordEditingController.text
+                        //         }));
+                        // if (response.statusCode == 200 && context.mounted) {
+                        Navigator.pop(context);
+                        Navigator.pushNamed(context, 'homepage');
+                        //   SharedPreferences prefs =
+                        //       await SharedPreferences.getInstance();
+                        //   await prefs.setString('user_token',
+                        //       jsonDecode(response.body)['user_token']);
+                        // } else {
+                        //   setState(() {
+                        //     _errorMessage = response.body;
+                        //   });
+                        // }
                       },
                       child: const Text('LOGIN')),
                   TextButton(
@@ -546,7 +547,6 @@ class _SignUpCard3State extends State<SignUpCard3> {
   }
 
   void handleSignup() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_formKeys[3].currentState?.validate() ?? false) {
       _user['password'] = _passwordEditingController.text;
       try {
@@ -555,12 +555,12 @@ class _SignUpCard3State extends State<SignUpCard3> {
           body: jsonEncode(_user),
           headers: {'Content-Type': 'application/json'},
         );
-        if (!context.mounted) return;
-        if (response.statusCode == 200) {
-          await prefs.setString(
-              'user_token', jsonDecode(response.body)['user_token']);
+        if (response.statusCode == 200 && context.mounted) {
           Navigator.pop(context);
           Navigator.pushNamed(context, 'homepage');
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+              'user_token', jsonDecode(response.body)['user_token']);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Login error:${response.body}")));

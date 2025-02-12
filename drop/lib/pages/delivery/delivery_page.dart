@@ -1,11 +1,9 @@
+import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
-import 'package:drop/constants/constants.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 
 class DeliveryPage extends StatefulWidget {
   const DeliveryPage({super.key});
@@ -15,25 +13,22 @@ class DeliveryPage extends StatefulWidget {
 }
 
 class _DeliveryPageState extends State<DeliveryPage> {
-  List<Delivery> destinations = [];
-  List<Polyline> polyLines = [];
-  LatLng userLocation = const LatLng(0, 0);
+  late final DeliveryRoute deliveryRoute;
 
+  List<Polyline> polyLines = [];
   final PageController pageController = PageController();
   late GoogleMapController mapController;
   var isCardExpanded = false;
 
   @override
-  void didChangeDependencies() {
-    // try {
-    //   //TODO : CLEAN
-    //   destinations =
-    //       ModalRoute.of(context)!.settings.arguments as List<Delivery>;
-    // } catch (e) {
-    //   destinations = Delivery.sampleData;
-    // }
-    destinations = Delivery.sampleData;
-    _getUserLocation();
+  void didChangeDependencies() async {
+    try {
+      //TODO : Clean debug data
+      deliveryRoute =
+          ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
+    } catch (e) {
+      deliveryRoute = await DeliveryRoute.getSampleData();
+    }
     _getRoute();
     super.didChangeDependencies();
   }
@@ -79,15 +74,15 @@ class _DeliveryPageState extends State<DeliveryPage> {
             children: [
               GoogleMap(
                   polylines: Set<Polyline>.of(polyLines),
-                  markers: Set.from(destinations.map(
+                  markers: Set.from(deliveryRoute.deliveries.map(
                     (e) => Marker(
                         icon: BitmapDescriptor.defaultMarkerWithHue(
                             BitmapDescriptor.hueBlue),
                         markerId: MarkerId(e.locationName),
                         position: e.locationLatLng),
                   )),
-                  initialCameraPosition: CameraPosition(
-                      target: destinations[0].locationLatLng, zoom: 10),
+                  initialCameraPosition:
+                      CameraPosition(target: deliveryRoute.startLocation),
                   mapType: MapType.normal,
                   myLocationEnabled: true,
                   trafficEnabled: false,
@@ -136,7 +131,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                           ? MediaQuery.of(context).size.height / 2.9
                           : MediaQuery.of(context).size.height / 4.2,
                       child: PageView.builder(
-                        itemCount: destinations.length,
+                        itemCount: deliveryRoute.deliveries.length,
                         controller: pageController,
                         itemBuilder: (context, index) => Padding(
                           padding: const EdgeInsets.symmetric(
@@ -182,7 +177,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                       child: Container(
                                                         decoration:
                                                             BoxDecoration(
-                                                          color: destinations[
+                                                          color: deliveryRoute
+                                                                      .deliveries[
                                                                           index]
                                                                       .status ==
                                                                   "IN_STOCK"
@@ -196,7 +192,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                         ),
                                                         child: Center(
                                                           child: Icon(
-                                                            (destinations[index]
+                                                            (deliveryRoute
+                                                                        .deliveries[
+                                                                            index]
                                                                         .status ==
                                                                     "IN_STOCK")
                                                                 ? Icons
@@ -236,7 +234,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                           Expanded(
                                               flex: 2,
                                               child: Text(
-                                                destinations[index]
+                                                deliveryRoute.deliveries[index]
                                                     .locationName,
                                                 style: const TextStyle(
                                                   fontSize: 18,
@@ -250,7 +248,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                               ))
                                         ]),
                                     if (isCardExpanded &&
-                                        (destinations[index].ownerName ?? '')
+                                        (deliveryRoute.deliveries[index]
+                                                    .ownerName ??
+                                                '')
                                             .isNotEmpty)
                                       Row(
                                           mainAxisAlignment:
@@ -267,7 +267,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                   CrossAxisAlignment.end,
                                               children: [
                                                 Text(
-                                                  destinations[index]
+                                                  deliveryRoute
+                                                          .deliveries[index]
                                                           .ownerName ??
                                                       "",
                                                   style: const TextStyle(
@@ -278,7 +279,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                 ElevatedButton(
                                                   onPressed: () {
                                                     launchUrl(Uri.parse(
-                                                        'tel:${destinations[index].phone}'));
+                                                        'tel:${deliveryRoute.deliveries[index].phone}'));
                                                   },
                                                   child: const Row(
                                                     children: [
@@ -306,7 +307,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                             Expanded(
                                               flex: 2,
                                               child: Text(
-                                                destinations[index].note ?? '',
+                                                deliveryRoute.deliveries[index]
+                                                        .note ??
+                                                    '',
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines:
                                                     (isCardExpanded) ? 5 : 2,
@@ -332,14 +335,14 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _getRoute() async {
-    for (var i = 0; i < destinations.length - 1; i++) {
+    for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
       await PolyLinePointList.getPolyLineRoute(
-              start: destinations[i].locationLatLng,
-              end: destinations[i + 1].locationLatLng)
+              start: deliveryRoute.deliveries[i].locationLatLng,
+              end: deliveryRoute.deliveries[i + 1].locationLatLng)
           .then(
         (value) {
           polyLines.add(Polyline(
-              polylineId: PolylineId(destinations[i].locationName),
+              polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
               points: value,
               color: Colors.blue,
               width: 3));
@@ -349,34 +352,16 @@ class _DeliveryPageState extends State<DeliveryPage> {
     setState(() {});
   }
 
-  Future<void> _getUserLocation() async {
-    final locationservices = LocationServices();
-    final hasPermission = await locationservices.checkLocationPermission();
-    if (!hasPermission) return;
-    final LocationData locationData =
-        await locationservices.location.getLocation();
-    setState(() {
-      userLocation = LatLng(locationData.latitude!, locationData.longitude!);
-      destinations.insert(
-          0,
-          Delivery.fromMap({
-            'locationLatLng': userLocation,
-          }));
-    });
-
-    mapController.animateCamera(CameraUpdate.newLatLng(userLocation));
-  }
-
   _toggleDeliveryStatus(int i) {
     setState(() {
-      if (destinations[i].status == "IN_STOCK") {
-        destinations[i].status = "DELIVERED";
+      if (deliveryRoute.deliveries[i].status == "IN_STOCK") {
+        deliveryRoute.deliveries[i].status = "DELIVERED";
 
         pageController.animateToPage((i + 1),
             duration: const Duration(milliseconds: 800),
             curve: Curves.linearToEaseOut);
       } else {
-        destinations[i].status = "IN_STOCK";
+        deliveryRoute.deliveries[i].status = "IN_STOCK";
       }
     });
   }
