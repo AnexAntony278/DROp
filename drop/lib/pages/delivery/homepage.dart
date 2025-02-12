@@ -39,12 +39,12 @@ class HomePage extends StatelessWidget {
               onTap: () {
                 Navigator.pushNamed(context, 'createroutepage');
               },
-              child: Card(
+              child: const Card(
                 elevation: 6,
-                child: Container(
+                child: SizedBox(
                   height: 100,
                   width: double.infinity,
-                  child: const Icon(
+                  child: Icon(
                     Icons.add_rounded,
                     size: 50,
                   ),
