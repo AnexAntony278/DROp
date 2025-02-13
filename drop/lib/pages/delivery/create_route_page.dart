@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:drop/constants/constants.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class CreateRoutePage extends StatefulWidget {
@@ -98,14 +99,38 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                 //CREATE DELIVERY ROUTE
                 final userLocation =
                     await LocationServices().getCurrentLocation();
-                final deliveryRoute = DeliveryRoute.create(
+                final deliveryRoute = await DeliveryRoute.create(
                     deliveries: deliveries, startLocation: userLocation);
-                debugPrint(deliveryRoute.toString());
+
                 //TODO: Optimize Route
+
+                String destinationsRequestString =
+                    "${userLocation.latitude}%2C${userLocation.longitude}";
+                for (var deliveryLocation in deliveryRoute.deliveries.map(
+                  (e) => e.locationLatLng,
+                )) {
+                  destinationsRequestString =
+                      "$destinationsRequestString%7C${deliveryLocation.latitude}%2C${deliveryLocation.longitude}";
+                }
+                final response = await http.post(Uri.parse(
+                    "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=$destinationsRequestString&origins=$destinationsRequestString&key=$MAPS_API_KEY"));
+
+                final decodedResponse =
+                    jsonDecode(response.body) as Map<String, dynamic>;
+                late List<List<int>> distanceMatrix = [];
+                for (var row in decodedResponse['rows']) {
+                  List<int> distanceRow = [];
+                  for (var distanceElement in row['elements']) {
+                    distanceRow.add(distanceElement['distance']['value']);
+                  }
+                  distanceMatrix.add(distanceRow);
+                }
+
                 //TODO: Save route as file
-                Navigator.pop(context);
-                Navigator.pushNamed(context, 'deliverypage',
-                    arguments: deliveryRoute);
+
+                // Navigator.pop(context);
+                // Navigator.pushNamed(context, 'deliverypage',
+                //     arguments: deliveryRoute);
               }
             }
           },

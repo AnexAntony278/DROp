@@ -1,6 +1,5 @@
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
-import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -81,8 +80,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                         markerId: MarkerId(e.locationName),
                         position: e.locationLatLng),
                   )),
-                  initialCameraPosition:
-                      CameraPosition(target: deliveryRoute.startLocation),
+                  initialCameraPosition: CameraPosition(
+                      target: deliveryRoute.startLocation, zoom: 10),
                   mapType: MapType.normal,
                   myLocationEnabled: true,
                   trafficEnabled: false,

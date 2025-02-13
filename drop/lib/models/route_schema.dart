@@ -28,7 +28,7 @@ class DeliveryRoute {
   String toString() {
     return 'DeliveryRoute(startLocation: $startLocation, deliveries: ${deliveries.length}, agentId: $agentId, createdAt: $createdAt)';
   }
-
+  
   //TODO: remove sample data after use
 
   static Future<DeliveryRoute> getSampleData() async {
