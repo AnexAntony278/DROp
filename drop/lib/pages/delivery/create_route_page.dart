@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:drop/constants/constants.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
@@ -6,6 +7,7 @@ import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateRoutePage extends StatefulWidget {
   const CreateRoutePage({super.key});
@@ -96,14 +98,14 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       }) ??
                   false;
               if (sure && context.mounted) {
-                //CREATE DELIVERY ROUTE
+                // Create Delivery Route
+
                 final userLocation =
                     await LocationServices().getCurrentLocation();
                 final deliveryRoute = await DeliveryRoute.create(
                     deliveries: deliveries, startLocation: userLocation);
 
-                //TODO: Optimize Route
-
+                //Calculate distance matrix
                 String destinationsRequestString =
                     "${userLocation.latitude}%2C${userLocation.longitude}";
                 for (var deliveryLocation in deliveryRoute.deliveries.map(
@@ -112,22 +114,25 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   destinationsRequestString =
                       "$destinationsRequestString%7C${deliveryLocation.latitude}%2C${deliveryLocation.longitude}";
                 }
-                final response = await http.post(Uri.parse(
-                    "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=$destinationsRequestString&origins=$destinationsRequestString&key=$MAPS_API_KEY"));
+                final response = jsonDecode((await http.post(Uri.parse(
+                        "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=$destinationsRequestString&origins=$destinationsRequestString&key=$MAPS_API_KEY")))
+                    .body) as Map<String, dynamic>;
 
-                final decodedResponse =
-                    jsonDecode(response.body) as Map<String, dynamic>;
-                late List<List<int>> distanceMatrix = [];
-                for (var row in decodedResponse['rows']) {
-                  List<int> distanceRow = [];
-                  for (var distanceElement in row['elements']) {
-                    distanceRow.add(distanceElement['distance']['value']);
-                  }
-                  distanceMatrix.add(distanceRow);
-                }
+                deliveryRoute.distanceMatrix = (response['rows']
+                        as List<dynamic>)
+                    .map<List<int>>((row) => (row['elements'] as List<dynamic>)
+                        .map<int>(
+                            (element) => element['distance']['value'] as int)
+                        .toList())
+                    .toList();
 
-                //TODO: Save route as file
+                //TODO: OPTIMIZE Route
 
+                //TODO: Save route in HiveDB
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                final String userId = prefs.getString("user_token") ?? "";
+
+                // debugPrint(currentDeliveries);
                 // Navigator.pop(context);
                 // Navigator.pushNamed(context, 'deliverypage',
                 //     arguments: deliveryRoute);

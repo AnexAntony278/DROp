@@ -1,18 +1,24 @@
+import 'dart:convert';
+
 import 'package:drop/models/delivery_schema.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class DeliveryRoute {
+  final String id;
   final List<Delivery> deliveries;
   final LatLng startLocation;
   final DateTime createdAt;
   final String? agentId;
+  List<List<int>>? distanceMatrix;
 
   DeliveryRoute._internal({
     required this.deliveries,
     required this.startLocation,
     required this.agentId,
-  }) : createdAt = DateTime.now();
+  })  : createdAt = DateTime.now(),
+        id = const Uuid().v4();
 
   static Future<DeliveryRoute> create({
     required List<Delivery> deliveries,
@@ -26,9 +32,23 @@ class DeliveryRoute {
 
   @override
   String toString() {
-    return 'DeliveryRoute(startLocation: $startLocation, deliveries: ${deliveries.length}, agentId: $agentId, createdAt: $createdAt)';
+    return toMap().toString();
   }
-  
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'deliveries': deliveries.map((d) => d.toMap()).toList(),
+      'startLocation': {
+        'lat': startLocation.latitude,
+        'lng': startLocation.longitude
+      },
+      'createdAt': createdAt.toIso8601String(),
+      'agentId': agentId,
+      'distanceMatrix': distanceMatrix
+    };
+  }
+
   //TODO: remove sample data after use
 
   static Future<DeliveryRoute> getSampleData() async {

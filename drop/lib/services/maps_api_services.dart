@@ -69,7 +69,7 @@ class LocationServices {
   final Location _location = Location();
 
   Future<LatLng> getCurrentLocation() async {
-    PermissionStatus permission = await _location.hasPermission();
+    PermissionStatus permission = await _location.requestPermission();
     if (permission == PermissionStatus.denied) {
       permission = await _location.requestPermission();
     }
