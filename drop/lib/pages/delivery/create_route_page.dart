@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:drop/constants/constants.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../services/local_file_storage.dart';
 
 class CreateRoutePage extends StatefulWidget {
@@ -109,7 +107,8 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       await DistanceMatrixServices.getDistanceMatrix(
                           deliveryRoute: deliveryRoute);
 
-                  //TODO: Save route in File
+                  //Save route in File
+                  //TODO: WEB SUPPORT
                   if (!kIsWeb) {
                     LocalFileStorage.storeRouteAsFile(
                         deliveryRoute: deliveryRoute);
