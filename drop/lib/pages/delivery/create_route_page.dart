@@ -4,10 +4,12 @@ import 'package:drop/constants/constants.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/local_file_storage.dart';
 
 class CreateRoutePage extends StatefulWidget {
   const CreateRoutePage({super.key});
@@ -98,41 +100,31 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       }) ??
                   false;
               if (sure && context.mounted) {
-                // Create Delivery Route
+                try {
+                  final userLocation =
+                      await LocationServices().getCurrentLocation();
+                  final deliveryRoute = await DeliveryRoute.create(
+                      deliveries: deliveries, startLocation: userLocation);
+                  deliveryRoute.distanceMatrix =
+                      await DistanceMatrixServices.getDistanceMatrix(
+                          deliveryRoute: deliveryRoute);
 
-                final userLocation =
-                    await LocationServices().getCurrentLocation();
-                final deliveryRoute = await DeliveryRoute.create(
-                    deliveries: deliveries, startLocation: userLocation);
-
-                //Calculate distance matrix
-                String destinationsRequestString =
-                    "${userLocation.latitude}%2C${userLocation.longitude}";
-                for (var deliveryLocation in deliveryRoute.deliveries.map(
-                  (e) => e.locationLatLng,
-                )) {
-                  destinationsRequestString =
-                      "$destinationsRequestString%7C${deliveryLocation.latitude}%2C${deliveryLocation.longitude}";
+                  //TODO: Save route in File
+                  if (!kIsWeb) {
+                    LocalFileStorage.storeRouteAsFile(
+                        deliveryRoute: deliveryRoute);
+                  }
+                } catch (err, error) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        duration: const Duration(seconds: 5),
+                        content: Text(error.toString())));
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(err.toString())));
+                  }
                 }
-                final response = jsonDecode((await http.post(Uri.parse(
-                        "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=$destinationsRequestString&origins=$destinationsRequestString&key=$MAPS_API_KEY")))
-                    .body) as Map<String, dynamic>;
-
-                deliveryRoute.distanceMatrix = (response['rows']
-                        as List<dynamic>)
-                    .map<List<int>>((row) => (row['elements'] as List<dynamic>)
-                        .map<int>(
-                            (element) => element['distance']['value'] as int)
-                        .toList())
-                    .toList();
-
                 //TODO: OPTIMIZE Route
 
-                //TODO: Save route in HiveDB
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                final String userId = prefs.getString("user_token") ?? "";
-
-                // debugPrint(currentDeliveries);
                 // Navigator.pop(context);
                 // Navigator.pushNamed(context, 'deliverypage',
                 //     arguments: deliveryRoute);
