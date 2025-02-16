@@ -4,10 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class DeliveryRoute {
-  final String id;
+  String id;
   final List<Delivery> deliveries;
   final LatLng startLocation;
-  final DateTime createdAt;
+  DateTime createdAt;
   final String? agentId;
   List<List<int>>? distanceMatrix;
 
@@ -45,6 +45,27 @@ class DeliveryRoute {
       'agentId': agentId,
       'distanceMatrix': distanceMatrix
     };
+  }
+
+  static DeliveryRoute fromMap(Map<String, dynamic> data) {
+    DeliveryRoute deliveryRoute = DeliveryRoute._internal(
+        deliveries: List.from((data['deliveries'] as dynamic)
+            .map((delivery) => Delivery.fromMap(delivery))),
+        startLocation:
+            LatLng(data['startLocation']['lat'], data['startLocation']['lng']),
+        agentId: data['agentId'])
+      ..id = data['id']
+      ..createdAt = DateTime.parse(data['createdAt'])
+      ..distanceMatrix = (data['distanceMatrix'] as List)
+          .map(
+            (row) => (row as List)
+                .map(
+                  (e) => (e as int),
+                )
+                .toList(),
+          )
+          .toList();
+    return deliveryRoute;
   }
 
   //TODO: remove sample data after use
