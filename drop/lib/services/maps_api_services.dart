@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 
 class Geocoding {
   // Geocoding
-
   static Future<LatLng> getLatLng(String input) async {
     try {
       final url = Uri.parse(
@@ -25,7 +24,7 @@ class Geocoding {
     } catch (e) {
       debugPrint(e.toString());
     }
-    return LatLng(0, 0);
+    return const LatLng(0, 0);
   }
 }
 
@@ -56,7 +55,8 @@ class PolyLinePointList {
         request: PolylineRequest(
             origin: PointLatLng(start.latitude, start.longitude),
             destination: PointLatLng(end.latitude, end.longitude),
-            mode: TravelMode.driving));
+            mode: TravelMode.driving,
+            optimizeWaypoints: true));
     if (result.points.isNotEmpty) {
       for (PointLatLng point in result.points) {
         pointList.add(LatLng(point.latitude, point.longitude));
