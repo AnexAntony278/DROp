@@ -1,4 +1,3 @@
-import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
@@ -9,7 +8,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final String? userToken = prefs.getString('user_token');
-  debugPrint("\n\n $userToken");
+  debugPrint("\n\n $userToken loggedin");
   runApp(MyApp(isLoggedIn: (userToken != null && userToken.isNotEmpty)));
 }
 
@@ -25,7 +24,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 158, 244, 244)),
           fontFamily: 'Montserrat'),
-      home: isLoggedIn ? const HomePage() : const AuthPage(),
+      home: isLoggedIn ? const HomePage() : const DeliveryPage(),
       routes: {
         "homepage": (context) => const HomePage(),
         "createroutepage": (context) => const CreateRoutePage(),

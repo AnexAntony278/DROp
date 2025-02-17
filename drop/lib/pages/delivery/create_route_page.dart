@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../services/local_file_storage.dart';
 
 class CreateRoutePage extends StatefulWidget {
@@ -97,7 +95,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         );
                       }) ??
                   false;
-              if (sure && context.mounted) {
+              if (sure) {
                 try {
                   final userLocation =
                       await LocationServices().getCurrentLocation();
@@ -107,11 +105,19 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       await DistanceMatrixServices.getDistanceMatrix(
                           deliveryRoute: deliveryRoute);
 
-                  //Save route in File
-                  //TODO: WEB SUPPORT
+                  //TODO: OPTIMIZE Route
+
                   if (!kIsWeb) {
+                    //Save route in File
                     LocalFileStorage.storeRouteAsFile(
                         deliveryRoute: deliveryRoute);
+                  } else {
+                    //TODO: WEB SUPPORT
+                  }
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, 'deliverypage',
+                        arguments: deliveryRoute);
                   }
                 } catch (err, error) {
                   if (context.mounted) {
@@ -122,11 +128,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         .showSnackBar(SnackBar(content: Text(err.toString())));
                   }
                 }
-                //TODO: OPTIMIZE Route
-
-                // Navigator.pop(context);
-                // Navigator.pushNamed(context, 'deliverypage',
-                //     arguments: deliveryRoute);
               }
             }
           },

@@ -1,4 +1,5 @@
 import 'package:drop/models/delivery_schema.dart';
+import 'package:drop/services/maps_api_services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -9,7 +10,7 @@ class DeliveryRoute {
   final LatLng startLocation;
   DateTime createdAt;
   final String? agentId;
-  List<List<int>>? distanceMatrix;
+  late List<List<int>> distanceMatrix;
 
   DeliveryRoute._internal({
     required this.deliveries,
@@ -71,9 +72,13 @@ class DeliveryRoute {
   //TODO: remove sample data after use
 
   static Future<DeliveryRoute> getSampleData() async {
-    return await DeliveryRoute.create(
+    DeliveryRoute sampleDeliveryRoute = await DeliveryRoute.create(
       deliveries: Delivery.sampleData,
-      startLocation: const LatLng(37.7749, -122.4194),
+      startLocation: const LatLng(9.8531117, 76.9477609),
     );
+    sampleDeliveryRoute.distanceMatrix =
+        await DistanceMatrixServices.getDistanceMatrix(
+            deliveryRoute: sampleDeliveryRoute);
+    return sampleDeliveryRoute;
   }
 }
