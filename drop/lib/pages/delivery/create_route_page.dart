@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
+import 'package:drop/services/route_optimization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -106,6 +107,9 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                           deliveryRoute: deliveryRoute);
 
                   //TODO: OPTIMIZE Route
+                  ACOOptimizer(
+                    deliveryRoute: deliveryRoute,
+                  ).optimize();
 
                   if (!kIsWeb) {
                     //Save route in File

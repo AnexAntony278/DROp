@@ -1,3 +1,4 @@
+import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 158, 244, 244)),
           fontFamily: 'Montserrat'),
-      home: isLoggedIn ? const HomePage() : const DeliveryPage(),
+      home: isLoggedIn ? const HomePage() : const AuthPage(),
       routes: {
         "homepage": (context) => const HomePage(),
         "createroutepage": (context) => const CreateRoutePage(),
