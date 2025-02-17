@@ -32,7 +32,7 @@ class ACOOptimizer {
     );
   }
 
-  List<int> optimize() {
+  void optimize() {
     List<int> bestRoute = [];
     double bestRouteLength = double.infinity;
 
@@ -54,8 +54,14 @@ class ACOOptimizer {
 
       _updatePheromones(antRoutes, routeLengths);
     }
+    // Rearrange Delvieries
 
-    return bestRoute;
+    bestRoute.remove(0);
+    deliveryRoute.deliveries = bestRoute
+        .map(
+          (i) => deliveryRoute.deliveries[i - 1],
+        )
+        .toList();
   }
 
   List<int> _constructSolution() {

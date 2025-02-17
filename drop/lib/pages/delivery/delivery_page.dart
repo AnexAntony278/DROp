@@ -32,16 +32,12 @@ class _DeliveryPageState extends State<DeliveryPage> {
 
   Future<void> _initializeData() async {
     //TODO: CLEAN
-    // try {
-    //   deliveryRoute =
-    //       ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
-    // } catch (e) {
-    deliveryRoute = await DeliveryRoute.getSampleData();
-    // }
-    ACOOptimizer optimizer = ACOOptimizer(deliveryRoute: deliveryRoute);
-    final order = optimizer.optimize();
-    debugPrint(order.toString());
-
+    try {
+      deliveryRoute =
+          ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
+    } catch (e) {
+      deliveryRoute = await DeliveryRoute.getSampleData();
+    }
     await _getRoute();
     await _loadMarkers();
     setState(() {
@@ -145,6 +141,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                   ? MediaQuery.of(context).size.height / 2.9
                                   : MediaQuery.of(context).size.height / 4.2,
                               child: PageView.builder(
+                                onPageChanged: (value) {
+                                  mapController.animateCamera(
+                                      CameraUpdate.newLatLng(deliveryRoute
+                                          .deliveries[value].locationLatLng));
+                                },
                                 itemCount: deliveryRoute.deliveries.length,
                                 controller: pageController,
                                 itemBuilder: (context, index) => Padding(
