@@ -1,7 +1,5 @@
-import 'package:drop/models/delivery_schema.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
-import 'package:drop/services/route_optimization.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -427,6 +425,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
         position: deliveryRoute.deliveries[i].locationLatLng,
       ));
     }
+    newMarkers.add(Marker(
+      icon: BitmapDescriptor.defaultMarker,
+      markerId: const MarkerId("user"),
+      position: deliveryRoute.startLocation,
+    ));
     if (mounted) {
       setState(() {
         markers = newMarkers;
