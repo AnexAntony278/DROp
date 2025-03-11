@@ -20,6 +20,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   final _noteTextEditingController = TextEditingController();
   List<Delivery> deliveries = [];
   List<dynamic> _suggestedDestinations = [];
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -58,10 +59,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
           backgroundColor: Theme.of(context).primaryColor,
           title: const Text("Create Route"),
         ),
@@ -102,21 +99,22 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       await LocationServices().getCurrentLocation();
                   final deliveryRoute = await DeliveryRoute.create(
                       deliveries: deliveries, startLocation: userLocation);
+// Get distance matrix
                   deliveryRoute.distanceMatrix =
                       await DistanceMatrixServices.getDistanceMatrix(
                           deliveryRoute: deliveryRoute);
 
-                  //TODO: OPTIMIZE Route
+// Optimize Route
                   ACOOptimizer(
                     deliveryRoute: deliveryRoute,
                   ).optimize();
 
                   if (!kIsWeb) {
-                    //Save route in File
-                    LocalFileStorage.storeRouteAsFile(
+//Save route in File
+                    LocalFileStorage.storeRouteFile(
                         deliveryRoute: deliveryRoute);
                   } else {
-                    //TODO: WEB SUPPORT
+//TODO: WEB SUPPORT
                   }
                   if (context.mounted) {
                     Navigator.pop(context);
