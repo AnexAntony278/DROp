@@ -29,13 +29,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _initializeData() async {
-    //TODO: CLEAN
-    try {
-      deliveryRoute =
-          ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
-    } catch (e) {
-      deliveryRoute = await DeliveryRoute.getSampleData();
-    }
+    deliveryRoute = ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
+
     await _getRoute();
     await _loadMarkers();
     setState(() {
@@ -80,82 +75,88 @@ class _DeliveryPageState extends State<DeliveryPage> {
             foregroundColor: Colors.white,
             backgroundColor: Theme.of(context).primaryColor),
         body: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Center(
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                          polylines: Set<Polyline>.of(polyLines),
-                          markers: markers,
-                          initialCameraPosition: CameraPosition(
-                              target: deliveryRoute.startLocation, zoom: 10),
-                          mapType: MapType.normal,
-                          myLocationEnabled: true,
-                          trafficEnabled: false,
-                          indoorViewEnabled: false,
-                          mapToolbarEnabled: false,
-                          minMaxZoomPreference:
-                              const MinMaxZoomPreference(2, 20),
-                          onMapCreated: (GoogleMapController controller) {
-                            mapController = controller;
-                          }),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            padding: const EdgeInsets.all(0),
-                            constraints: const BoxConstraints(maxHeight: 30),
-                            icon: (isCardExpanded)
-                                ? const Icon(
-                                    Icons.keyboard_arrow_down_rounded,
-                                    size: 60,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                          color: Colors.black,
-                                          blurRadius: 5,
-                                          offset: Offset(0, 0))
-                                    ],
-                                  )
-                                : const Icon(
-                                    Icons.keyboard_arrow_up_rounded,
-                                    size: 60,
-                                    color: Colors.white,
-                                    shadows: [
-                                      Shadow(
-                                          color: Colors.black,
-                                          blurRadius: 5,
-                                          offset: Offset(0, 0))
-                                    ],
-                                  ),
-                            onPressed: _toggleCardSize,
-                          ),
-                          GestureDetector(
-                            onTap: _toggleCardSize,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              height: (isCardExpanded)
-                                  ? MediaQuery.of(context).size.height / 2.9
-                                  : MediaQuery.of(context).size.height / 4.2,
-                              child: PageView.builder(
-                                onPageChanged: (value) {
-                                  mapController.animateCamera(
-                                      CameraUpdate.newLatLng(deliveryRoute
-                                          .deliveries[value].locationLatLng));
-                                },
-                                itemCount: deliveryRoute.deliveries.length,
-                                controller: pageController,
-                                itemBuilder: (context, index) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 10),
-                                  child: Card(
-                                      color: const Color.fromARGB(
-                                          255, 234, 234, 234),
-                                      elevation: 10,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20.0),
-                                        child: Column(
+          child: Center(
+            child: Stack(
+              children: [
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : GoogleMap(
+                        polylines: Set<Polyline>.of(polyLines),
+                        markers: markers,
+                        initialCameraPosition: CameraPosition(
+                            target: deliveryRoute.startLocation, zoom: 10),
+                        mapType: MapType.normal,
+                        myLocationEnabled: true,
+                        trafficEnabled: false,
+                        indoorViewEnabled: false,
+                        mapToolbarEnabled: false,
+                        minMaxZoomPreference: const MinMaxZoomPreference(2, 20),
+                        onMapCreated: (GoogleMapController controller) {
+                          mapController = controller;
+                        }),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      padding: const EdgeInsets.all(0),
+                      constraints: const BoxConstraints(maxHeight: 30),
+                      icon: (isCardExpanded)
+                          ? const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 60,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                    color: Colors.black,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 0))
+                              ],
+                            )
+                          : const Icon(
+                              Icons.keyboard_arrow_up_rounded,
+                              size: 60,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                    color: Colors.black,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 0))
+                              ],
+                            ),
+                      onPressed: _toggleCardSize,
+                    ),
+                    GestureDetector(
+                      onTap: _toggleCardSize,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: (isCardExpanded)
+                            ? MediaQuery.of(context).size.height / 2.9
+                            : MediaQuery.of(context).size.height / 4.2,
+                        child: PageView.builder(
+                          onPageChanged: (value) {
+                            mapController.animateCamera(CameraUpdate.newLatLng(
+                                deliveryRoute
+                                    .deliveries[
+                                        value % deliveryRoute.deliveries.length]
+                                    .locationLatLng));
+                            // Animate to corresponding pageview location. When last page is reached, animate to start point
+                            _updatePolylineColors(value);
+                            setState(() {});
+                          },
+                          itemCount: deliveryRoute.deliveries.length + 1,
+                          controller: pageController,
+                          itemBuilder: (context, index) => Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 10),
+                            child: Card(
+                                color: const Color.fromARGB(255, 234, 234, 234),
+                                elevation: 10,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: (index ==
+                                          deliveryRoute.deliveries.length)
+                                      ? Text("LAST PAGE")
+                                      : Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
                                           crossAxisAlignment:
@@ -211,7 +212,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                   borderRadius:
                                                                       BorderRadius
                                                                           .circular(
-                                                                              4), // Optional: rounded corners
+                                                                              4),
                                                                 ),
                                                                 child: Center(
                                                                   child: Icon(
@@ -358,16 +359,16 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                             ),
                                           ],
                                         ),
-                                      )),
-                                ),
-                              ),
-                            ),
+                                )),
                           ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -382,8 +383,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
         polyLines.add(Polyline(
             polylineId: const PolylineId("Start"),
             points: value,
-            color: Colors.blue,
-            width: 3));
+            color: const Color.fromARGB(232, 68, 137, 255),
+            width: 4));
       },
     );
     for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
@@ -395,7 +396,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
           polyLines.add(Polyline(
               polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
               points: value,
-              color: Colors.blue,
+              color: const Color.fromARGB(194, 64, 195, 255),
               width: 3));
         },
       );
@@ -408,7 +409,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
         polyLines.add(Polyline(
             polylineId: const PolylineId("last"),
             points: value,
-            color: Colors.blue,
+            color: const Color.fromARGB(194, 64, 195, 255),
             width: 3));
       },
     );
@@ -435,6 +436,25 @@ class _DeliveryPageState extends State<DeliveryPage> {
         markers = newMarkers;
       });
     }
+  }
+
+  void _updatePolylineColors(int selectedIndex) {
+    List<Polyline> updatedPolylines = [];
+
+    for (int i = 0; i < polyLines.length; i++) {
+      updatedPolylines.add(Polyline(
+          polylineId: polyLines[i].polylineId,
+          points: polyLines[i].points,
+          color: (i == selectedIndex)
+              ? const Color.fromARGB(232, 68, 137, 255)
+              : const Color.fromARGB(194, 64, 195, 255),
+          width: (i == selectedIndex) ? 4 : 3,
+          zIndex: (i == selectedIndex) ? 1 : 0));
+    }
+
+    setState(() {
+      polyLines = updatedPolylines;
+    });
   }
 
   _toggleDeliveryStatus(int i) {
