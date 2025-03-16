@@ -28,6 +28,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
       onPopInvokedWithResult: (didPop, result) async {
         if (deliveries.isEmpty) {
           Navigator.pop(context);
+          Navigator.pushNamed(context, 'homepage');
           return;
         }
         final bool shouldPop = await showDialog<bool>(
@@ -55,6 +56,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
             false;
         if (context.mounted && shouldPop) {
           Navigator.pop(context);
+          Navigator.pushNamed(context, 'homepage');
         }
       },
       child: Scaffold(

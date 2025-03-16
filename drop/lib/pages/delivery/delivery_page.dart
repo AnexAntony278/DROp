@@ -2,6 +2,7 @@ import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -38,6 +39,93 @@ class _DeliveryPageState extends State<DeliveryPage> {
     });
   }
 
+  Future<void> _getRoute() async {
+    await PolyLinePointList.getPolyLineRoute(
+            start: deliveryRoute.startLocation,
+            end: deliveryRoute.deliveries[0].locationLatLng)
+        .then(
+      (value) {
+        polyLines.add(Polyline(
+            polylineId: const PolylineId("Start"),
+            points: value,
+            color: const Color.fromARGB(232, 68, 137, 255),
+            width: 4,
+            zIndex: 1));
+      },
+    );
+    for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
+      await PolyLinePointList.getPolyLineRoute(
+              start: deliveryRoute.deliveries[i].locationLatLng,
+              end: deliveryRoute.deliveries[i + 1].locationLatLng)
+          .then(
+        (value) {
+          polyLines.add(Polyline(
+              polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
+              points: value,
+              color: const Color.fromARGB(194, 64, 195, 255),
+              width: 3));
+        },
+      );
+    }
+    await PolyLinePointList.getPolyLineRoute(
+      start: deliveryRoute.deliveries.last.locationLatLng,
+      end: deliveryRoute.startLocation,
+    ).then(
+      (value) {
+        polyLines.add(Polyline(
+            polylineId: const PolylineId("last"),
+            points: value,
+            color: const Color.fromARGB(194, 64, 195, 255),
+            width: 3));
+      },
+    );
+    setState(() {});
+  }
+
+  Future<void> _loadMarkers() async {
+    Set<Marker> newMarkers = {};
+    for (int i = 0; i < deliveryRoute.deliveries.length; i++) {
+      final markerIcon = await createNumberedMarker(i + 1, Colors.white);
+      newMarkers.add(Marker(
+        icon: markerIcon,
+        markerId: MarkerId((i + 1).toString()),
+        position: deliveryRoute.deliveries[i].locationLatLng,
+      ));
+    }
+    newMarkers.add(Marker(
+      icon: BitmapDescriptor.defaultMarker,
+      markerId: const MarkerId("user"),
+      position: deliveryRoute.startLocation,
+    ));
+    if (mounted) {
+      setState(() {
+        markers = newMarkers;
+      });
+    }
+  }
+
+  void _updatePolylineColors(int selectedIndex) {
+    List<Polyline> updatedPolylines = [];
+
+    for (int i = 0; i < polyLines.length; i++) {
+      updatedPolylines.add(Polyline(
+          polylineId: polyLines[i].polylineId,
+          points: polyLines[i].points,
+          color: (i == selectedIndex)
+              ? const Color.fromARGB(232, 68, 137, 255)
+              : const Color.fromARGB(194, 64, 195, 255),
+          width: (i == selectedIndex) ? 4 : 3,
+          zIndex: (i == selectedIndex) ? 1 : 0));
+    }
+
+    polyLines = updatedPolylines;
+  }
+
+  Future<void> _setRecentRoute() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    preferences.setString("recentRouteId", deliveryRoute.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -67,6 +155,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
             false;
         if (context.mounted && shouldPop) {
           Navigator.pop(context);
+          Navigator.pushNamed(context, 'homepage');
+          _setRecentRoute();
         }
       },
       child: Scaffold(
@@ -155,7 +245,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                   padding: const EdgeInsets.all(20.0),
                                   child: (index ==
                                           deliveryRoute.deliveries.length)
-                                      ? Text("LAST PAGE")
+                                      ? // TODO: End of Delivery Page
+                                      Text("LAST PAGE")
                                       : Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
@@ -372,89 +463,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
         ),
       ),
     );
-  }
-
-  Future<void> _getRoute() async {
-    await PolyLinePointList.getPolyLineRoute(
-            start: deliveryRoute.startLocation,
-            end: deliveryRoute.deliveries[0].locationLatLng)
-        .then(
-      (value) {
-        polyLines.add(Polyline(
-            polylineId: const PolylineId("Start"),
-            points: value,
-            color: const Color.fromARGB(232, 68, 137, 255),
-            width: 4));
-      },
-    );
-    for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
-      await PolyLinePointList.getPolyLineRoute(
-              start: deliveryRoute.deliveries[i].locationLatLng,
-              end: deliveryRoute.deliveries[i + 1].locationLatLng)
-          .then(
-        (value) {
-          polyLines.add(Polyline(
-              polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
-              points: value,
-              color: const Color.fromARGB(194, 64, 195, 255),
-              width: 3));
-        },
-      );
-    }
-    await PolyLinePointList.getPolyLineRoute(
-      start: deliveryRoute.deliveries.last.locationLatLng,
-      end: deliveryRoute.startLocation,
-    ).then(
-      (value) {
-        polyLines.add(Polyline(
-            polylineId: const PolylineId("last"),
-            points: value,
-            color: const Color.fromARGB(194, 64, 195, 255),
-            width: 3));
-      },
-    );
-    setState(() {});
-  }
-
-  Future<void> _loadMarkers() async {
-    Set<Marker> newMarkers = {};
-    for (int i = 0; i < deliveryRoute.deliveries.length; i++) {
-      final markerIcon = await createNumberedMarker(i + 1, Colors.white);
-      newMarkers.add(Marker(
-        icon: markerIcon,
-        markerId: MarkerId(deliveryRoute.deliveries[i].locationName),
-        position: deliveryRoute.deliveries[i].locationLatLng,
-      ));
-    }
-    newMarkers.add(Marker(
-      icon: BitmapDescriptor.defaultMarker,
-      markerId: const MarkerId("user"),
-      position: deliveryRoute.startLocation,
-    ));
-    if (mounted) {
-      setState(() {
-        markers = newMarkers;
-      });
-    }
-  }
-
-  void _updatePolylineColors(int selectedIndex) {
-    List<Polyline> updatedPolylines = [];
-
-    for (int i = 0; i < polyLines.length; i++) {
-      updatedPolylines.add(Polyline(
-          polylineId: polyLines[i].polylineId,
-          points: polyLines[i].points,
-          color: (i == selectedIndex)
-              ? const Color.fromARGB(232, 68, 137, 255)
-              : const Color.fromARGB(194, 64, 195, 255),
-          width: (i == selectedIndex) ? 4 : 3,
-          zIndex: (i == selectedIndex) ? 1 : 0));
-    }
-
-    setState(() {
-      polyLines = updatedPolylines;
-    });
   }
 
   _toggleDeliveryStatus(int i) {

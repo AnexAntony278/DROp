@@ -10,6 +10,7 @@ class DeliveryRoute {
   DateTime createdAt;
   final String? agentId;
   late List<List<int>> distanceMatrix;
+  String? status = "INCOMPLETE";
 
   DeliveryRoute._internal({
     required this.deliveries,
@@ -43,7 +44,8 @@ class DeliveryRoute {
       },
       'createdAt': createdAt.toIso8601String(),
       'agentId': agentId,
-      'distanceMatrix': distanceMatrix
+      'distanceMatrix': distanceMatrix,
+      'status': status
     };
   }
 
@@ -67,7 +69,7 @@ class DeliveryRoute {
           .toList();
     return deliveryRoute;
   }
-  
+
   //TODO: remove sample data after use
 
   static Future<DeliveryRoute> getSampleData() async {
