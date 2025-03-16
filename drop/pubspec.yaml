@@ -67,8 +67,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets\animations\BoxAnimation.json
-    - assets\animations\RotatingBox.json
-    # - assets\images\hero_image.png
+    - assets\animations\DeliveryScooterAnimation.json
+    - assets\images\delivery_screenshot.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
