@@ -20,7 +20,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
   Set<Marker> markers = {};
   final PageController pageController = PageController();
   late GoogleMapController mapController;
-  var isCardExpanded = false;
+  bool isCardExpanded = false;
   bool _isLoading = true;
 
   @override
@@ -30,8 +30,10 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _initializeData() async {
-    deliveryRoute = ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
-
+    if (_isLoading) {
+      deliveryRoute =
+          ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
+    }
     await _getRoute();
     await _loadMarkers();
     setState(() {
@@ -161,8 +163,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-            title: const Text('Delivery Page'),
-            foregroundColor: Colors.white,
+            title: const Text(
+              'Delivery Page',
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
             backgroundColor: Theme.of(context).primaryColor),
         body: SafeArea(
           child: Center(
@@ -246,7 +251,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                   child: (index ==
                                           deliveryRoute.deliveries.length)
                                       ? // TODO: End of Delivery Page
-                                      Text("LAST PAGE")
+                                      Column(
+                                          children: [Text("data")],
+                                        )
                                       : Column(
                                           mainAxisAlignment:
                                               MainAxisAlignment.spaceBetween,
@@ -341,7 +348,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                     CrossAxisAlignment.end,
                                                 children: [
                                                   const Icon(
-                                                    Icons.location_city,
+                                                    Icons.location_on_rounded,
                                                     color: Color.fromRGBO(
                                                         64, 64, 64, 1),
                                                   ),
