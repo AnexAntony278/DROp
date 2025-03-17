@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<DeliveryRoute> userRoutes = [];
   DeliveryRoute? recentRoute;
+
   @override
   void initState() {
     _getRecentRoute();
@@ -42,9 +43,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
+      appBar: (MediaQuery.of(context).orientation == Orientation.portrait)
+          ? AppBar(
+              backgroundColor: Theme.of(context).primaryColor,
+            )
+          : null,
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -154,7 +157,14 @@ class _HomePageState extends State<HomePage> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Text(
-                                        "${recentRoute!.deliveries.length} deliveries",
+                                        "${recentRoute?.deliveries.fold(
+                                          0,
+                                          (previousValue, element) =>
+                                              previousValue +
+                                              ((element.status == "DELIVERED")
+                                                  ? 1
+                                                  : 0),
+                                        )}/ ${recentRoute?.deliveries.length} deliveried",
                                         style: const TextStyle(
                                             color: Color.fromARGB(
                                                 255, 58, 247, 203),
@@ -187,179 +197,149 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-              (userRoutes.isEmpty)
-                  ? Expanded(
-                      child: SizedBox(
-                        height: double.infinity,
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(60),
-                                child: Lottie.asset(
-                                    'assets/animations/DeliveryScooterAnimation.json'),
-                              ),
-                              const Text("Create a route and start delivering",
-                                  style: TextStyle(fontSize: 15)),
-                            ],
+              if (userRoutes.isEmpty)
+                Expanded(
+                  child: SizedBox(
+                    height: double.infinity,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height / 3,
+                            child: Lottie.asset(
+                                'assets/animations/DeliveryScooterAnimation.json'),
                           ),
-                        ),
-                      ),
-                    )
-                  : Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: ListView.separated(
-                          itemCount: userRoutes.length,
-                          itemBuilder: (context, index) {
-                            if (index == 0 ||
-                                !DateUtils.isSameDay(
-                                    userRoutes[index].createdAt,
-                                    userRoutes[index - 1].createdAt)) {
-                              return Column(
-                                children: [
-                                  ListTile(
-                                    title: Text(
-                                      DateFormat.yMMMMd()
-                                          .format(userRoutes[index].createdAt),
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    tileColor: Colors.blueGrey,
-                                  ),
-                                  Dismissible(
-                                    key: Key(userRoutes[index].id),
-                                    direction: DismissDirection.startToEnd,
-                                    background: Container(
-                                      alignment: Alignment.centerLeft,
-                                      color: Colors.red,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20),
-                                      child: const Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    confirmDismiss: (direction) async {
-                                      return await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text("Confirm Delete"),
-                                            content: const Text(
-                                                "Are you sure you want to delete this route?"),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(false),
-                                                child: const Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context)
-                                                        .pop(true),
-                                                child: const Text("Delete",
-                                                    style: TextStyle(
-                                                        color: Colors.red)),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                    onDismissed: (direction) async {
-                                      await LocalFileStorage.deleteRouteFile(
-                                          deliveryRoute: userRoutes[index]);
-                                      setState(() {
-                                        if (recentRoute?.id ==
-                                            userRoutes[index].id) {
-                                          recentRoute = null;
-                                        }
-                                        userRoutes.removeAt(index);
-                                      });
-                                    },
-                                    child: ListTile(
-                                        title: Text(
-                                            "From:${userRoutes[index].deliveries.first.locationName} -> ${userRoutes[index].deliveries.last.locationName}"),
-                                        onTap: () async {
-                                          Navigator.pop(context);
-                                          await Navigator.pushNamed(
-                                              context, "deliverypage",
-                                              arguments: userRoutes[index]);
-                                        }),
-                                  )
-                                ],
-                              );
-                            }
-                            return Dismissible(
-                              key: Key(userRoutes[index].id),
-                              direction: DismissDirection.startToEnd,
-                              background: Container(
-                                alignment: Alignment.centerLeft,
-                                color: Colors.red,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              confirmDismiss: (direction) async {
-                                return await showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Confirm Delete"),
-                                      content: const Text(
-                                          "Are you sure you want to delete this route?"),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
-                                          child: const Text("Cancel"),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
-                                          child: const Text("Delete",
-                                              style:
-                                                  TextStyle(color: Colors.red)),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                              onDismissed: (direction) async {
-                                await LocalFileStorage.deleteRouteFile(
-                                    deliveryRoute: userRoutes[index]);
-                                setState(() {
-                                  if (recentRoute?.id == userRoutes[index].id) {
-                                    recentRoute = null;
-                                  }
-                                  userRoutes.removeAt(index);
-                                });
-                              },
-                              child: ListTile(
-                                  title: Text(
-                                      "From:${userRoutes[index].deliveries.first.locationName} -> ${userRoutes[index].deliveries.last.locationName}"),
-                                  onTap: () async {
-                                    Navigator.pop(context);
-                                    await Navigator.pushNamed(
-                                        context, "deliverypage",
-                                        arguments: userRoutes[index]);
-                                  }),
-                            );
-                          },
-                          separatorBuilder: (context, index) => const Divider(
-                            height: 3,
-                          ),
-                        ),
+                          const Text("Create a route and start delivering",
+                              style: TextStyle(fontSize: 15)),
+                        ],
                       ),
                     ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: ListView.separated(
+                      itemCount: userRoutes.length,
+                      itemBuilder: (context, index) {
+                        {
+                          return Column(
+                            children: [
+                              if (index == 0 ||
+                                  !DateUtils.isSameDay(
+                                      userRoutes[index].createdAt,
+                                      userRoutes[index - 1].createdAt))
+                                ListTile(
+                                  title: Text(
+                                    DateFormat.yMMMMd()
+                                        .format(userRoutes[index].createdAt),
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  tileColor: Colors.blueGrey,
+                                ),
+                              Dismissible(
+                                key: Key(userRoutes[index].id),
+                                direction: DismissDirection.startToEnd,
+                                background: Container(
+                                  alignment: Alignment.centerLeft,
+                                  color: Colors.red,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                confirmDismiss: (direction) async {
+                                  return await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text("Confirm Delete"),
+                                        content: const Text(
+                                            "Are you sure you want to delete this route?"),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                            child: const Text("Delete",
+                                                style: TextStyle(
+                                                    color: Colors.red)),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                onDismissed: (direction) async {
+                                  await LocalFileStorage.deleteRouteFile(
+                                      deliveryRoute: userRoutes[index]);
+                                  setState(() {
+                                    if (recentRoute?.id ==
+                                        userRoutes[index].id) {
+                                      recentRoute = null;
+                                    }
+                                    userRoutes.removeAt(index);
+                                  });
+                                },
+                                child: ListTile(
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${DateFormat.jm().format(userRoutes[index].createdAt)} ",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "${userRoutes[index].deliveries.fold(
+                                                    0,
+                                                    (previousValue, element) =>
+                                                        previousValue +
+                                                        ((element.status ==
+                                                                "DELIVERED")
+                                                            ? 1
+                                                            : 0),
+                                                  )} / ${userRoutes[index].deliveries.length}",
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    subtitle: Text(
+                                        "From:${userRoutes[index].deliveries.first.locationName} -> ${userRoutes[index].deliveries.last.locationName}"),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      await Navigator.pushNamed(
+                                          context, "deliverypage",
+                                          arguments: userRoutes[index]);
+                                    }),
+                              )
+                            ],
+                          );
+                        }
+                      },
+                      separatorBuilder: (context, index) => const Divider(
+                        height: 5,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           )),
     );
