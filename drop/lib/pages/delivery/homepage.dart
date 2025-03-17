@@ -71,7 +71,6 @@ class _HomePageState extends State<HomePage> {
           onPressed: () async {
             Navigator.pop(context);
             await Navigator.pushNamed(context, 'createroutepage');
-            _initializeData();
           },
           label: const Row(
             children: [
@@ -274,7 +273,13 @@ class _HomePageState extends State<HomePage> {
                                     onDismissed: (direction) async {
                                       await LocalFileStorage.deleteRouteFile(
                                           deliveryRoute: userRoutes[index]);
-                                      _initializeData();
+                                      setState(() {
+                                        if (recentRoute?.id ==
+                                            userRoutes[index].id) {
+                                          recentRoute = null;
+                                        }
+                                        userRoutes.removeAt(index);
+                                      });
                                     },
                                     child: ListTile(
                                         title: Text(
@@ -284,7 +289,6 @@ class _HomePageState extends State<HomePage> {
                                           await Navigator.pushNamed(
                                               context, "deliverypage",
                                               arguments: userRoutes[index]);
-                                          _initializeData();
                                         }),
                                   )
                                 ],
@@ -332,7 +336,12 @@ class _HomePageState extends State<HomePage> {
                               onDismissed: (direction) async {
                                 await LocalFileStorage.deleteRouteFile(
                                     deliveryRoute: userRoutes[index]);
-                                _initializeData();
+                                setState(() {
+                                  if (recentRoute?.id == userRoutes[index].id) {
+                                    recentRoute = null;
+                                  }
+                                  userRoutes.removeAt(index);
+                                });
                               },
                               child: ListTile(
                                   title: Text(
@@ -342,7 +351,6 @@ class _HomePageState extends State<HomePage> {
                                     await Navigator.pushNamed(
                                         context, "deliverypage",
                                         arguments: userRoutes[index]);
-                                    _initializeData();
                                   }),
                             );
                           },
