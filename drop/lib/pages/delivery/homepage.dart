@@ -239,7 +239,7 @@ class _HomePageState extends State<HomePage> {
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),
                                   ),
-                                  tileColor: Colors.blueGrey,
+                                  tileColor: Theme.of(context).hintColor,
                                 ),
                               Dismissible(
                                 key: Key(userRoutes[index].id),

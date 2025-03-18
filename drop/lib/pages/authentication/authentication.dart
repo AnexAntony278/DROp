@@ -556,8 +556,7 @@ class _SignUpCard3State extends State<SignUpCard3> {
           headers: {'Content-Type': 'application/json'},
         );
         if (response.statusCode == 200 && context.mounted) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
+          Navigator.popAndPushNamed(context, 'homepage');
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
               'user_token', jsonDecode(response.body)['user_token']);
