@@ -36,12 +36,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
     await _initializeData();
   }
 
-  @override
-  void dispose() async {
-    super.dispose();
-    await LocalFileStorage.storeRouteFile(deliveryRoute: deliveryRoute);
-  }
-
   Future<void> _initializeData() async {
     if (_isLoading) {
       deliveryRoute =
@@ -168,9 +162,12 @@ class _DeliveryPageState extends State<DeliveryPage> {
                   );
                 }) ??
             false;
-        if (context.mounted && shouldPop) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
+        if (!context.mounted || !shouldPop) return;
+
+        await LocalFileStorage.storeRouteFile(deliveryRoute: deliveryRoute);
+
+        if (context.mounted) {
+          Navigator.popAndPushNamed(context, 'homepage');
           _setRecentRoute();
         }
       },
@@ -269,7 +266,25 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                             deliveryRoute.deliveries.length)
                                         ? // TODO: End of Delivery Page
                                         Column(
-                                            children: [Text("data")],
+                                            children: [
+                                              Text(
+                                                "DELIVERED: ${deliveryRoute.deliveries.fold(
+                                                  0,
+                                                  (previousValue, element) =>
+                                                      previousValue +
+                                                      ((element.status ==
+                                                              "DELIVERED")
+                                                          ? 1
+                                                          : 0),
+                                                )} / ${deliveryRoute.deliveries.length}",
+                                                style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.w700),
+                                              ),
+                                              Text(
+                                                  "Mark delivery as completed ?")
+                                            ],
                                           )
                                         : Column(
                                             mainAxisAlignment:

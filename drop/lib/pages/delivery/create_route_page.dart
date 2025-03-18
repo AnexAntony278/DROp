@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:drop/models/route_schema.dart';
+import 'package:drop/services/connectivity.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/models/delivery_schema.dart';
 import 'package:drop/services/route_optimization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../services/local_file_storage.dart';
@@ -21,14 +21,15 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
   List<Delivery> deliveries = [];
   List<dynamic> _suggestedDestinations = [];
 
+  bool _internetChecked = false;
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (deliveries.isEmpty) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
+          Navigator.popAndPushNamed(context, 'homepage');
           return;
         }
         final bool shouldPop = await showDialog<bool>(
@@ -55,8 +56,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                 }) ??
             false;
         if (context.mounted && shouldPop) {
-          Navigator.pop(context);
-          Navigator.pushNamed(context, 'homepage');
+          Navigator.popAndPushNamed(context, 'homepage');
         }
       },
       child: Scaffold(
@@ -98,42 +98,65 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         );
                       }) ??
                   false;
-              if (sure) {
-                try {
-                  final userLocation =
-                      await LocationServices().getCurrentLocation();
-                  final deliveryRoute = await DeliveryRoute.create(
-                      deliveries: deliveries, startLocation: userLocation);
-// Get distance matrix
-                  deliveryRoute.distanceMatrix =
-                      await DistanceMatrixServices.getDistanceMatrix(
-                          deliveryRoute: deliveryRoute);
-
-// Optimize Route
-                  ACOOptimizer(
-                    deliveryRoute: deliveryRoute,
-                  ).optimize();
-
-                  if (!kIsWeb) {
-//Save route in File
-                    LocalFileStorage.storeRouteFile(
-                        deliveryRoute: deliveryRoute);
-                  } else {
-//TODO: WEB SUPPORT
-                  }
+              if (!sure) return;
+              try {
+                //Internet check
+                if (!await InternetServices.checkInternet()) {
                   if (context.mounted) {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, 'deliverypage',
-                        arguments: deliveryRoute);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('No internet connection.')),
+                    );
                   }
-                } catch (err, error) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        duration: const Duration(seconds: 5),
-                        content: Text(error.toString())));
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(err.toString())));
-                  }
+                  return;
+                }
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const PopScope(
+                      canPop: false,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  );
+                }
+
+                // Get location and create delivery route
+                final userLocation =
+                    await LocationServices().getCurrentLocation();
+                final deliveryRoute = await DeliveryRoute.create(
+                  deliveries: deliveries,
+                  startLocation: userLocation,
+                );
+
+                // Fetch distance matrix and optimize route
+                await Future.wait([
+                  DistanceMatrixServices.getDistanceMatrix(
+                          deliveryRoute: deliveryRoute)
+                      .then((matrix) => deliveryRoute.distanceMatrix = matrix),
+                  Future.delayed(const Duration(milliseconds: 500)),
+                ]);
+                ACOOptimizer(deliveryRoute: deliveryRoute).optimize();
+
+                // Store the file
+                await LocalFileStorage.storeRouteFile(
+                    deliveryRoute: deliveryRoute);
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  Navigator.pushNamed(context, 'deliverypage',
+                      arguments: deliveryRoute);
+                }
+              } catch (error) {
+                if (context.mounted) {
+                  Navigator.pop(
+                      context); // Close loading dialog if an error occurs
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      duration: const Duration(seconds: 5),
+                      content: Text(error.toString()),
+                    ),
+                  );
                 }
               }
             }
@@ -178,6 +201,19 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                 if (textEditingValue.text.isEmpty) {
                                   return [];
                                 } else {
+                                  //check internet
+                                  if (!await InternetServices.checkInternet()) {
+                                    if (context.mounted && !_internetChecked) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                'No internet connection.')),
+                                      );
+                                    }
+                                    _internetChecked = true;
+                                    return [];
+                                  }
                                   _suggestedDestinations =
                                       await MapsAutocomplete.getPredictions(
                                           textEditingValue.text);
