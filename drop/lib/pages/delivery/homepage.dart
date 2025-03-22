@@ -25,7 +25,9 @@ class _HomePageState extends State<HomePage> {
 
   _initializeData() async {
     userRoutes = await LocalFileStorage.getCurrentUserRoutes();
-    userRoutes = List.from(userRoutes.reversed);
+    userRoutes.sort(
+      (a, b) => b.createdAt.compareTo(a.createdAt),
+    );
     setState(() {});
   }
 

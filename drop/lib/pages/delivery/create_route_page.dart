@@ -64,7 +64,6 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
           backgroundColor: Theme.of(context).primaryColor,
           title: const Text(
             "Create Route",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ),
         floatingActionButton: FloatingActionButton.extended(

@@ -22,9 +22,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'DROp',
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color.fromARGB(255, 158, 244, 244)),
-          fontFamily: 'Montserrat'),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color.fromARGB(255, 158, 244, 244)),
+        fontFamily: 'Montserrat',
+        appBarTheme: const AppBarTheme(
+            foregroundColor: Colors.white,
+            titleTextStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 23,
+              fontFamily: 'Montserrat',
+            )),
+      ),
       home: isLoggedIn ? const HomePage() : const AuthPage(),
       routes: {
         "homepage": (context) => const HomePage(),

@@ -66,10 +66,6 @@ class Delivery {
     };
   }
 
-  void incrementDeliveryAttempts() {
-    deliveryAttempts++;
-  }
-
   //DEBUGGING DATA
 
   static List<Delivery> sampleData = List.from([
@@ -89,7 +85,7 @@ class Delivery {
       "note": "Main delivery hub",
       "status": "IN_STOCK",
       "ownerName": "Anandu Dinacharyan H . D",
-      "deliveryAttempts": 0,
+      "deliveryAttempts": 0
     },
     {
       "id": "7",
