@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:drop/services/input_validator.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Map<String, dynamic> _user = {};
 final List<GlobalKey<FormState>> _formKeys = [
@@ -307,8 +306,6 @@ class _SignUpCard1State extends State<SignUpCard1> {
                           _user['phone'] = _phoneEditingController.text;
                           widget.cardChange(2);
                         }
-                        //DEBUGGING EASE
-                        // cardChange(2);
                       },
                       child: const Text(
                         'next >>',
@@ -557,7 +554,6 @@ class _SignUpCard3State extends State<SignUpCard3> {
         );
         if (response.statusCode == 200 && mounted) {
           Navigator.popAndPushNamed(context, 'homepage');
-
           await AppPreferencesService.instance.prefs
               .setString('user_token', jsonDecode(response.body)['user_token']);
         } else {

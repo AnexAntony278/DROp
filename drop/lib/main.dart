@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await AppPreferencesService.instance.init();
+  await AppPreferencesService.instance.init();
   final String? userToken =
       AppPreferencesService.instance.prefs.getString('user_token');
   debugPrint("\n\n $userToken loggedin");

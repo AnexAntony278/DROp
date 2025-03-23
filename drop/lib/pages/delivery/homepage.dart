@@ -4,7 +4,6 @@ import 'package:drop/services/local_file_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   _getRecentRoute() async {
     String? recentRouteId =
         AppPreferencesService.instance.prefs.getString("recentRouteId");
+    debugPrint("$recentRouteId ");
     if (recentRouteId != null) {
       recentRoute = (await LocalFileStorage.getRouteFromFile(
               routeIdList: [recentRouteId]))

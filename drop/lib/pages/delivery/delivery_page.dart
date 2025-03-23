@@ -1,11 +1,9 @@
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
-import 'package:drop/services/connectivity.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -43,21 +41,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
       deliveryRoute =
           ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
     }
-    if (!await InternetServices.checkInternet() && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("No internet connection. Check connectivity")));
-    }
-    while (!await InternetServices.checkInternet()) {
-      await Future.delayed(const Duration(seconds: 3));
-    }
     await _getRoute();
     await _loadMarkers();
-
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _getRoute() async {
@@ -74,7 +62,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
             zIndex: 1));
       },
     );
-
     for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
       await PolyLinePointList.getPolyLineRoute(
               start: deliveryRoute.deliveries[i].locationLatLng,
@@ -89,7 +76,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
         },
       );
     }
-
     await PolyLinePointList.getPolyLineRoute(
       start: deliveryRoute.deliveries.last.locationLatLng,
       end: deliveryRoute.startLocation,
@@ -102,6 +88,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
             width: 3));
       },
     );
+    setState(() {});
   }
 
   Future<void> _loadMarkers() async {
@@ -144,7 +131,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _setRecentRoute() async {
-    AppPreferencesService.instance.prefs
+    await AppPreferencesService.instance.prefs
         .setString("recentRouteId", deliveryRoute.id);
   }
 
@@ -175,20 +162,22 @@ class _DeliveryPageState extends State<DeliveryPage> {
                   );
                 }) ??
             false;
+        if (!context.mounted || !shouldPop) return;
 
-        if (!mounted || !shouldPop) return;
         await LocalFileStorage.storeRouteFile(deliveryRoute: deliveryRoute);
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (context.mounted) {
-            Navigator.popAndPushNamed(context, 'homepage');
-          }
-        });
+
+        if (context.mounted) {
+          Navigator.popAndPushNamed(context, 'homepage');
+          _setRecentRoute();
+        }
       },
       child: Scaffold(
         appBar: (MediaQuery.of(context).orientation == Orientation.portrait)
             ? AppBar(
                 title: const Text(
                   'Delivery Page',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 backgroundColor: Theme.of(context).primaryColor)
             : null,
@@ -277,10 +266,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                             deliveryRoute.deliveries.length)
                                         ? // TODO: End of Delivery Page
                                         Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 "DELIVERED: ${deliveryRoute.deliveries.fold(
@@ -297,67 +282,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                     fontWeight:
                                                         FontWeight.w700),
                                               ),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceAround,
-                                                children: [
-                                                  const Text(
-                                                    "Mark delivery as completed ?",
-                                                    style: TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w500),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 25,
-                                                    width: 35,
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          deliveryRoute
-                                                                      .status ==
-                                                                  "INCOMPLETE"
-                                                              ? deliveryRoute
-                                                                      .status =
-                                                                  "COMPLETE"
-                                                              : deliveryRoute
-                                                                      .status =
-                                                                  "INCOMPLETE";
-                                                        });
-                                                      },
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: deliveryRoute
-                                                                      .status ==
-                                                                  "INCOMPLETE"
-                                                              ? Colors.red
-                                                              : Colors.green,
-                                                          shape: BoxShape
-                                                              .rectangle,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(4),
-                                                        ),
-                                                        child: Center(
-                                                          child: Icon(
-                                                            (deliveryRoute
-                                                                        .status ==
-                                                                    "INCOMPLETE")
-                                                                ? Icons
-                                                                    .close_rounded
-                                                                : Icons
-                                                                    .check_rounded,
-                                                            color: Colors.white,
-                                                            size: 20,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
+                                              Text(
+                                                  "Mark delivery as completed ?")
                                             ],
                                           )
                                         : Column(
