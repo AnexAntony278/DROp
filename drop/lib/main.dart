@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
       ),
       home: isLoggedIn ? const HomePage() : const AuthPage(),
       routes: {
+        "authenticationpage": (context) => const AuthPage(),
         "homepage": (context) => const HomePage(),
         "createroutepage": (context) => const CreateRoutePage(),
         "deliverypage": (context) => const DeliveryPage()

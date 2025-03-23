@@ -181,29 +181,7 @@ class _LoginCardState extends State<LoginCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
-                      onPressed: () async {
-                        // TODO: REMOVE DEBUG CODE
-                        // final response =
-                        //     await http.post(Uri.parse("$NODE_SERVER_URL/login"),
-                        //         headers: {"Content-Type": "application/json"},
-                        //         body: jsonEncode({
-                        //           "name_or_email":
-                        //               _usernameEditingController.text,
-                        //           "password": _passwordEditingController.text
-                        //         }));
-                        // if (response.statusCode == 200 && context.mounted) {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, 'homepage');
-                        // await AppPreferencesService.instance.prefs.setString(
-                        //     'user_token',
-                        //     jsonDecode(response.body)['user_token']);
-                        // } else {
-                        //   setState(() {
-                        //     _errorMessage = response.body;
-                        //   });
-                        // }
-                      },
-                      child: const Text('LOGIN')),
+                      onPressed: _handleLogin, child: const Text('LOGIN')),
                   TextButton(
                       child: const Text(
                         'signup >>',
@@ -222,6 +200,24 @@ class _LoginCardState extends State<LoginCard> {
         ),
       )),
     );
+  }
+
+  _handleLogin() async {
+    final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "name_or_email": _usernameEditingController.text,
+          "password": _passwordEditingController.text
+        }));
+    if (response.statusCode == 200 && mounted) {
+      Navigator.popAndPushNamed(context, 'homepage');
+      await AppPreferencesService.instance.prefs
+          .setString('user_token', jsonDecode(response.body)['user_token']);
+    } else {
+      setState(() {
+        _errorMessage = response.body;
+      });
+    }
   }
 }
 

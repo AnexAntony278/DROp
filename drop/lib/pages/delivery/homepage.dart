@@ -34,7 +34,6 @@ class _HomePageState extends State<HomePage> {
   _getRecentRoute() async {
     String? recentRouteId =
         AppPreferencesService.instance.prefs.getString("recentRouteId");
-    debugPrint("$recentRouteId ");
     if (recentRouteId != null) {
       recentRoute = (await LocalFileStorage.getRouteFromFile(
               routeIdList: [recentRouteId]))
@@ -67,8 +66,17 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             ListTile(
-              title: const Text('Item 1'),
-              onTap: () {},
+              trailing: const Icon(Icons.logout),
+              title: const Text(
+                'Logout',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onTap: () async {
+                AppPreferencesService.instance.prefs.clear();
+                Navigator.popUntil(
+                    context, ModalRoute.withName("authenticationpage"));
+                await Navigator.pushNamed(context, "authenticationpage");
+              },
             ),
           ],
         ),
