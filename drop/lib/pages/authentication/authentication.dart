@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drop/constants/constants.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:drop/services/input_validator.dart';
@@ -194,10 +195,9 @@ class _LoginCardState extends State<LoginCard> {
                         // if (response.statusCode == 200 && context.mounted) {
                         Navigator.pop(context);
                         Navigator.pushNamed(context, 'homepage');
-                        //   SharedPreferences prefs =
-                        //       await SharedPreferences.getInstance();
-                        //   await prefs.setString('user_token',
-                        //       jsonDecode(response.body)['user_token']);
+                        // await AppPreferencesService.instance.prefs.setString(
+                        //     'user_token',
+                        //     jsonDecode(response.body)['user_token']);
                         // } else {
                         //   setState(() {
                         //     _errorMessage = response.body;
@@ -555,17 +555,19 @@ class _SignUpCard3State extends State<SignUpCard3> {
           body: jsonEncode(_user),
           headers: {'Content-Type': 'application/json'},
         );
-        if (response.statusCode == 200 && context.mounted) {
+        if (response.statusCode == 200 && mounted) {
           Navigator.popAndPushNamed(context, 'homepage');
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-              'user_token', jsonDecode(response.body)['user_token']);
+
+          await AppPreferencesService.instance.prefs
+              .setString('user_token', jsonDecode(response.body)['user_token']);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Login error:${response.body}")));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Login error:${response.body}")));
+          }
         }
       } catch (e) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text("Login error:$e")));
         }

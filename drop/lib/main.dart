@@ -2,13 +2,14 @@ import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
-  final String? userToken = prefs.getString('user_token');
+  final prefs = await AppPreferencesService.instance.init();
+  final String? userToken =
+      AppPreferencesService.instance.prefs.getString('user_token');
   debugPrint("\n\n $userToken loggedin");
   runApp(MyApp(isLoggedIn: (userToken != null && userToken.isNotEmpty)));
 }

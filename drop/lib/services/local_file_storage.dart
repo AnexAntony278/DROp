@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:drop/models/route_schema.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalFileStorage {
   static Future<void> storeRouteFile(
       {required DeliveryRoute deliveryRoute}) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userId = prefs.getString("user_token") ?? "guest";
+    final String userId =
+        AppPreferencesService.instance.prefs.getString("user_token") ?? "guest";
     Directory userDirectory = await getApplicationDocumentsDirectory();
     userDirectory = Directory('${userDirectory.path}/$userId/');
     await userDirectory.create(recursive: true);
@@ -20,8 +20,8 @@ class LocalFileStorage {
 
   static Future<void> deleteRouteFile(
       {required DeliveryRoute deliveryRoute}) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userId = prefs.getString("user_token") ?? "guest";
+    final String userId =
+        AppPreferencesService.instance.prefs.getString("user_token") ?? "guest";
     Directory userDirectory = await getApplicationDocumentsDirectory();
     userDirectory = Directory("${userDirectory.path}/$userId");
 
@@ -31,8 +31,8 @@ class LocalFileStorage {
 
   static Future<List<DeliveryRoute>> getRouteFromFile(
       {required List<String> routeIdList}) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userId = prefs.getString("user_token") ?? "guest";
+    final String userId =
+        AppPreferencesService.instance.prefs.getString("user_token") ?? "guest";
     Directory userDirectory = await getApplicationDocumentsDirectory();
     userDirectory = Directory("${userDirectory.path}/$userId");
 
@@ -50,8 +50,8 @@ class LocalFileStorage {
   }
 
   static Future<List<DeliveryRoute>> getCurrentUserRoutes() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String userId = prefs.getString("user_token") ?? "guest";
+    final String userId =
+        AppPreferencesService.instance.prefs.getString("user_token") ?? "guest";
     Directory userDirectory = await getApplicationDocumentsDirectory();
     userDirectory = Directory("${userDirectory.path}/$userId");
     List<DeliveryRoute> deliveryRoutes = await getRouteFromFile(

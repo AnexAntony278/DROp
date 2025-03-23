@@ -1,4 +1,5 @@
 import 'package:drop/models/route_schema.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -32,8 +33,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   _getRecentRoute() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? recentRouteId = preferences.getString("recentRouteId");
+    String? recentRouteId =
+        AppPreferencesService.instance.prefs.getString("recentRouteId");
     if (recentRouteId != null) {
       recentRoute = (await LocalFileStorage.getRouteFromFile(
               routeIdList: [recentRouteId]))

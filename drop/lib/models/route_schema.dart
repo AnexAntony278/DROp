@@ -1,6 +1,6 @@
 import 'package:drop/models/delivery_schema.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 class DeliveryRoute {
@@ -23,8 +23,8 @@ class DeliveryRoute {
     required List<Delivery> deliveries,
     required LatLng startLocation,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final agentId = prefs.getString("user_token");
+    final agentId =
+        AppPreferencesService.instance.prefs.getString("user_token");
     return DeliveryRoute._internal(
         deliveries: deliveries, startLocation: startLocation, agentId: agentId);
   }

@@ -1,4 +1,5 @@
 import 'package:drop/models/route_schema.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/connectivity.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:drop/services/maps_api_services.dart';
@@ -143,8 +144,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _setRecentRoute() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    preferences.setString("recentRouteId", deliveryRoute.id);
+    AppPreferencesService.instance.prefs
+        .setString("recentRouteId", deliveryRoute.id);
   }
 
   @override
