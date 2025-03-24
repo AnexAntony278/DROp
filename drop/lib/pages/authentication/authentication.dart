@@ -203,20 +203,27 @@ class _LoginCardState extends State<LoginCard> {
   }
 
   _handleLogin() async {
-    final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "name_or_email": _usernameEditingController.text,
-          "password": _passwordEditingController.text
-        }));
-    if (response.statusCode == 200 && mounted) {
-      Navigator.popAndPushNamed(context, 'homepage');
-      await AppPreferencesService.instance.prefs
-          .setString('user_token', jsonDecode(response.body)['user_token']);
-    } else {
-      setState(() {
-        _errorMessage = response.body;
-      });
+    try {
+      final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "name_or_email": _usernameEditingController.text,
+            "password": _passwordEditingController.text
+          }));
+      if (response.statusCode == 200 && mounted) {
+        Navigator.popAndPushNamed(context, 'homepage');
+        await AppPreferencesService.instance.prefs
+            .setString('user_token', jsonDecode(response.body)['user_token']);
+      } else {
+        setState(() {
+          _errorMessage = response.body;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Login error:$e")));
+      }
     }
   }
 }
@@ -561,7 +568,7 @@ class _SignUpCard3State extends State<SignUpCard3> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text("Login error:$e")));
+              .showSnackBar(SnackBar(content: Text("SignIn error:$e")));
         }
       }
     }

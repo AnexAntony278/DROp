@@ -10,7 +10,9 @@
   "author": "Anex Antony",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.1",
+    "mongodb": "^6.15.0",
     "mongoose": "^8.9.0"
   },
   "devDependencies": {

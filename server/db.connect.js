@@ -1,11 +1,11 @@
-
 const mongoose = require('mongoose');
-const connection = mongoose.connect('mongodb://localhost:27017/').then(() => {
-    console.log('\nDatabase conection suucesfull');
+require('dotenv').config();
+console.log(process.env.MONGO_SERVER_CONNECTION_STRING)
+const connection = mongoose.connect(`${process.env.MONGO_SERVER_CONNECTION_STRING}`).then(() => {
+    console.log('\nDatabase connection succesfull');
 }).catch((a) => {
-    console.log(`\nDatabase conection Error:${a} `)
+    console.log(`\nDatabase connection Error: ${a} `)
     return;
 });
-
 
 module.exports = connection;
