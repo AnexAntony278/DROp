@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/models/user_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
@@ -25,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   _initializeData() async {
-    userRoutes = await LocalFileStorage.getCurrentUserRoutes();
+    userRoutes = await LocalFileStorage.getCurrentUserIdRoutes();
     userRoutes.sort(
       (a, b) => b.createdAt.compareTo(a.createdAt),
     );
@@ -61,10 +63,44 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Column(
                 children: [
-                  Text(User.getCurrentUser() ?? "guest"),
-                  const ListTile(title: Text("Settings")),
+                  FittedBox(
+                    child: Text(
+                      jsonDecode(AppPreferencesService.instance.prefs
+                          .getString("user_token")!)["name"],
+                      style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                  ),
+                  ListTile(
+                    title: Text(
+                      jsonDecode(AppPreferencesService.instance.prefs
+                          .getString("user_token")!)["role"],
+                      style: const TextStyle(
+                        color: Colors.white,
+                      ),
+                    ),
+                    trailing: Icon(
+                      (jsonDecode(AppPreferencesService.instance.prefs
+                                  .getString("user_token")!)["role"] ==
+                              "MANAGER")
+                          ? Icons.manage_accounts
+                          : Icons.delivery_dining,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
+            ),
+            ListTile(
+              title: const Text("Dashboard",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: const Icon(Icons.dashboard),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.pushNamed(context, "managerdashboard");
+              },
             ),
             ListTile(
               trailing: const Icon(Icons.logout),

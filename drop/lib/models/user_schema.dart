@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +9,7 @@ class User {
   late final String phone;
   late final String password;
   late final String role; // MANAGER | AGENT
-  String? managerId; // Removed 'late' to allow nullability
+  String? managerId;
   late final DateTime createdAt;
 
   User({
@@ -45,13 +44,9 @@ class User {
     };
   }
 
-  static String? getCurrentUser() {
-    try {
-      String? userToken =
-          AppPreferencesService.instance.prefs.getString("user_token");
-      return (userToken == null) ? null : jsonDecode(userToken)['_id'];
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+  static String getCurrentUserId() {
+    String? userToken =
+        AppPreferencesService.instance.prefs.getString("user_token");
+    return (userToken == null) ? "guest" : jsonDecode(userToken)['_id'];
   }
 }
