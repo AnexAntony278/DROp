@@ -5,6 +5,25 @@ body {
     transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
 }
 
+a {
+    text-decoration: none;
+    color: #00796b;
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+a:hover {
+    color: #004d40;
+}
+
+.container.dark a {
+    color: #80cbc4;
+}
+
+.container.dark a:hover {
+    color: #4db6ac;
+}
+
 .container.light {
     background-color: #e0f2f1;
     color: #333;
@@ -81,6 +100,38 @@ header {
     transform: scale(1.1);
 }
 
+.download-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #008080;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 12px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    position: absolute;
+    bottom: 20px;
+    right: 10vw;
+    transition: background 0.3s ease-in-out;
+}
+
+.download-btn:hover {
+    background-color: #005f5f;
+}
+
+.download-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.about {
+    position: relative;
+    padding-bottom: 60px;
+}
+
 .about,
 .screenshots,
 .contact {
@@ -150,22 +201,22 @@ header {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 40px;
+    font-size: 24px;
     color: #e0f2f1;
-    background: rgba(0, 128, 128, 0.7);
-    padding: 10px 20px;
-    border-radius: 50%;
+    background: rgba(0, 128, 128, 0.8);
+    padding: 12px 18px;
+    border-radius: 5px;
     cursor: pointer;
     z-index: 10;
     transition: background 0.3s ease-in-out;
 }
 
 .custom-prev {
-    left: -50px;
+    left: 10px;
 }
 
 .custom-next {
-    right: -50px;
+    right: 10px;
 }
 
 .custom-arrow:hover {
@@ -175,8 +226,8 @@ header {
 
 @media (max-width: 768px) {
     .custom-arrow {
-        font-size: 30px;
-        padding: 8px 16px;
+        font-size: 20px;
+        padding: 10px 16px;
     }
 
     .screenshots img {
@@ -186,8 +237,8 @@ header {
 
 @media (max-width: 480px) {
     .custom-arrow {
-        font-size: 25px;
-        padding: 6px 12px;
+        font-size: 18px;
+        padding: 8px 14px;
     }
 
     .screenshots img {
