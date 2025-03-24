@@ -1,4 +1,5 @@
 import 'package:drop/models/route_schema.dart';
+import 'package:drop/models/user_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:flutter/material.dart';
@@ -58,10 +59,10 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
               ),
-              child: const Column(
+              child: Column(
                 children: [
-                  Text('User Name'),
-                  ListTile(title: Text("Settings")),
+                  Text(User.getCurrentUser() ?? "guest"),
+                  const ListTile(title: Text("Settings")),
                 ],
               ),
             ),

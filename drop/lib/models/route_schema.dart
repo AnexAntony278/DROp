@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drop/models/delivery_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -23,8 +25,8 @@ class DeliveryRoute {
     required List<Delivery> deliveries,
     required LatLng startLocation,
   }) async {
-    final agentId =
-        AppPreferencesService.instance.prefs.getString("user_token");
+    final agentId = jsonDecode(
+        AppPreferencesService.instance.prefs.getString("user_token")!)["_id"];
     return DeliveryRoute._internal(
         deliveries: deliveries, startLocation: startLocation, agentId: agentId);
   }

@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:drop/services/app_preferences_service.dart';
+import 'package:flutter/material.dart';
+
 class User {
   late final String id;
   late final String name;
@@ -38,5 +43,15 @@ class User {
       "managerId": managerId,
       "createdAt": createdAt.toString(),
     };
+  }
+
+  static String? getCurrentUser() {
+    try {
+      String? userToken =
+          AppPreferencesService.instance.prefs.getString("user_token");
+      return (userToken == null) ? null : jsonDecode(userToken)['_id'];
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 }

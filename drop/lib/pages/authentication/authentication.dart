@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:drop/constants/constants.dart';
+import 'package:drop/models/user_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -203,28 +204,28 @@ class _LoginCardState extends State<LoginCard> {
   }
 
   _handleLogin() async {
-    try {
-      final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "name_or_email": _usernameEditingController.text,
-            "password": _passwordEditingController.text
-          }));
-      if (response.statusCode == 200 && mounted) {
-        Navigator.popAndPushNamed(context, 'homepage');
-        await AppPreferencesService.instance.prefs
-            .setString('user_token', jsonDecode(response.body)['user_token']);
-      } else {
-        setState(() {
-          _errorMessage = response.body;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Login error:$e")));
-      }
-    }
+    // try {
+    //   final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
+    //       headers: {"Content-Type": "application/json"},
+    //       body: jsonEncode({
+    //         "name_or_email": _usernameEditingController.text,
+    //         "password": _passwordEditingController.text
+    //       }));
+    //   if (response.statusCode == 200 && mounted) {
+    Navigator.popAndPushNamed(context, 'homepage');
+    // await AppPreferencesService.instance.prefs.setString(
+    //     'user_token', jsonDecode(response.body)['user_token'].toString());
+    //   } else {
+    //     setState(() {
+    //       _errorMessage = response.body;
+    //     });
+    //   }
+    // } catch (e) {
+    //   if (mounted) {
+    //     ScaffoldMessenger.of(context)
+    //         .showSnackBar(SnackBar(content: Text("Login error:$e")));
+    //   }
+    // }
   }
 }
 
@@ -557,8 +558,8 @@ class _SignUpCard3State extends State<SignUpCard3> {
         );
         if (response.statusCode == 200 && mounted) {
           Navigator.popAndPushNamed(context, 'homepage');
-          await AppPreferencesService.instance.prefs
-              .setString('user_token', jsonDecode(response.body)['user_token']);
+          await AppPreferencesService.instance.prefs.setString(
+              'user_token', jsonDecode(response.body)['user_token'].toString());
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

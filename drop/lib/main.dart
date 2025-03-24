@@ -1,3 +1,4 @@
+import 'package:drop/models/user_schema.dart';
 import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
@@ -8,8 +9,8 @@ import 'package:flutter/material.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPreferencesService.instance.init();
-  final String? userToken =
-      AppPreferencesService.instance.prefs.getString('user_token');
+
+  final String? userToken = User.getCurrentUser();
   debugPrint("\n\n $userToken loggedin");
   runApp(MyApp(isLoggedIn: (userToken != null && userToken.isNotEmpty)));
 }
