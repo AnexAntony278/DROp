@@ -23,19 +23,45 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
   }
 
   Future<void> fetchAgents() async {
-    final response = await http.post(Uri.parse("$NODE_SERVER_URL/agents"),
-        body: jsonEncode({"managerId": User.getCurrentUserId()}),
-        headers: {'Content-Type': "application/json"});
-
     setState(() {
-      if (response.statusCode == 200) {
-        employees = jsonDecode(response.body)["agents"];
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Request error")));
-      }
-      _isLoading = false;
+      _isLoading = true;
     });
+
+    try {
+      final response = await http.post(
+        Uri.parse("$NODE_SERVER_URL/agents"),
+        body: jsonEncode({"managerId": User.getCurrentUserId()}),
+        headers: {'Content-Type': "application/json"},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            employees = data["agents"] ?? [];
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Request error")),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: ${e.toString()}")),
+        );
+      }
+    }
   }
 
   void _makeCall(String phoneNumber) async {
@@ -62,7 +88,6 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
         title: const Text("Manager Dashboard"),
         backgroundColor: Theme.of(context).primaryColor,
       ),
-      
       body: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
