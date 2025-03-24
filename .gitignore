@@ -119,4 +119,3 @@ app.*.map.json
 /android/app/release
 
 constants.dart
-index.html
