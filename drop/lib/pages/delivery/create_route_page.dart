@@ -165,7 +165,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children: <Widget>[
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
               child: Card(
@@ -174,7 +174,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   padding: const EdgeInsets.all(10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         'Add New Delivery:',
                         style: TextStyle(
@@ -193,7 +193,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                         ),
                       ),
                       Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             child: Autocomplete<String>(
                               optionsBuilder: (textEditingValue) async {
@@ -246,7 +246,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                   height: 400,
                                   color: Colors.white,
                                   child: Column(
-                                    children: [
+                                    children: <Widget>[
                                       const SizedBox(height: 10),
                                       const Text(
                                         "Scan QR Code",
@@ -318,7 +318,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
+                        children: <Widget>[
                           ElevatedButton(
                             child: const Text('ADD DESTINATION'),
                             onPressed: () async {
@@ -366,7 +366,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                   child: ListTile(
                     leading: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
+                      children: <Widget>[
                         Text(
                           '#${index + 1}',
                           style: const TextStyle(
@@ -380,7 +380,7 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                     ),
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         Expanded(
                           child: Text(
                             deliveries[index].locationName,

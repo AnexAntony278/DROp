@@ -2,7 +2,7 @@ import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
-import 'package:drop/pages/manager/manger_dashboard_page.dart';
+import 'package:drop/pages/manager/manger_dashboard.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
 
@@ -28,9 +28,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
             seedColor: const Color.fromARGB(255, 158, 244, 244)),
         fontFamily: 'Montserrat',
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
+            backgroundColor: Theme.of(context).primaryColor,
             foregroundColor: Colors.white,
-            titleTextStyle: TextStyle(
+            titleTextStyle: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 23,
               fontFamily: 'Montserrat',

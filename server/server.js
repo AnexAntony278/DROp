@@ -3,7 +3,9 @@ var port = 3000;
 const app = express();
 app.use(express.json());
 
-const connection = require('./db.connect.js')
+const connection =
+    require('./db.connect.js')
+
 const { User } = require('./models/user.model.js');
 
 app.post("/signup", async (req, res) => {
@@ -37,6 +39,15 @@ app.post("/login", async (req, res) => {
     }
 })
 
+app.post("/agents", async (req, res) => {
+    try {
+        const { managerId } = req.body;
+        const agents = await User.find({ managerId: managerId }).select("-password").lean().exec();
+        res.status(200).json({ "agents": agents });
+    } catch (error) {
+
+    }
+})
 
 app.listen(port, '0.0.0.0', () => {
     console.log(`\nDROP Server Running on port :${port}`)

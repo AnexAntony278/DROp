@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:drop/services/app_preferences_service.dart';
-import 'package:flutter/material.dart';
 
 class User {
   late final String id;

@@ -60,11 +60,11 @@ class _AuthPageState extends State<AuthPage>
                 ),
                 child: IntrinsicHeight(
                   child: Stack(
-                    children: [
+                    children: <Widget>[
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 100, vertical: 10),
@@ -79,13 +79,13 @@ class _AuthPageState extends State<AuthPage>
                       ),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
+                        children: <Widget>[
                           SizedBox(
                             height: MediaQuery.of(context).size.height * 0.7,
                             child: PageView(
                               physics: const NeverScrollableScrollPhysics(),
                               controller: _pageController,
-                              children: [
+                              children: <Widget>[
                                 LoginCard(
                                   cardChange: _changeCardTo,
                                 ),
@@ -145,11 +145,11 @@ class _LoginCardState extends State<LoginCard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   const Text(
                     'Username / E-mail',
                     style: TextStyle(
@@ -179,7 +179,7 @@ class _LoginCardState extends State<LoginCard> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   ElevatedButton(
                       onPressed: _handleLogin, child: const Text('LOGIN')),
                   TextButton(
@@ -259,11 +259,11 @@ class _SignUpCard1State extends State<SignUpCard1> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
                   const Text('Username',
                       style: TextStyle(
                           fontFamily: 'Montserrat',
@@ -292,7 +292,7 @@ class _SignUpCard1State extends State<SignUpCard1> {
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   TextButton(
                       child: const Text(
                         '<< login',
@@ -368,10 +368,10 @@ class _SignUpCard2State extends State<SignUpCard2> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         const Text(
                           'Role:',
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -381,7 +381,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                             width: MediaQuery.of(context).size.width * 0.5,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                              children: <Widget>[
                                 Text(
                                   roles[0],
                                   style: const TextStyle(
@@ -401,7 +401,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                children: [
+                                children: <Widget>[
                                   Text(roles[1],
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold)),
@@ -424,7 +424,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                     if (selectedRole == 'Delivery Agent')
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                        children: <Widget>[
                           const Text(
                             'Manager E-mail/Username if exists: ',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -436,7 +436,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                       ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
+                      children: <Widget>[
                         TextButton(
                             child: const Text(
                               '<< back',
@@ -500,10 +500,10 @@ class _SignUpCard3State extends State<SignUpCard3> {
             key: _formKeys[3],
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     const Text('Password',
                         style: TextStyle(
                             fontFamily: 'Montserrat',
@@ -526,7 +526,7 @@ class _SignUpCard3State extends State<SignUpCard3> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+                  children: <Widget>[
                     TextButton(
                       child: const Text('<< back',
                           style: TextStyle(

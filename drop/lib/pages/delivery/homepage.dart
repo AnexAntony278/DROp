@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:drop/models/route_schema.dart';
-import 'package:drop/models/user_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:flutter/material.dart';
@@ -56,13 +55,13 @@ class _HomePageState extends State<HomePage> {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: [
+          children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
               ),
               child: Column(
-                children: [
+                children: <Widget>[
                   FittedBox(
                     child: Text(
                       jsonDecode(AppPreferencesService.instance.prefs
@@ -124,7 +123,7 @@ class _HomePageState extends State<HomePage> {
             await Navigator.pushNamed(context, 'createroutepage');
           },
           label: const Row(
-            children: [
+            children: <Widget>[
               Text(
                 "Create New Route",
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -141,7 +140,7 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
           padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           child: Column(
-            children: [
+            children: <Widget>[
               if (recentRoute != null)
                 GestureDetector(
                   onTap: () {
@@ -158,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                         width: double.infinity,
                         child: Stack(
                           clipBehavior: Clip.hardEdge,
-                          children: [
+                          children: <Widget>[
                             Center(
                               child: Image.asset(
                                 'assets/images/delivery_screenshot.jpg',
@@ -192,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
-                                children: [
+                                children: <Widget>[
                                   Text(
                                     maxLines: 4,
                                     overflow: TextOverflow.fade,
@@ -203,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
+                                    children: <Widget>[
                                       Text(
                                         "${recentRoute?.deliveries.fold(
                                           0,
@@ -252,7 +251,7 @@ class _HomePageState extends State<HomePage> {
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           SizedBox(
                             height: MediaQuery.of(context).size.height / 3,
                             child: Lottie.asset(
@@ -274,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         {
                           return Column(
-                            children: [
+                            children: <Widget>[
                               if (index == 0 ||
                                   !DateUtils.isSameDay(
                                       userRoutes[index].createdAt,
@@ -344,14 +343,14 @@ class _HomePageState extends State<HomePage> {
                                     title: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
-                                      children: [
+                                      children: <Widget>[
                                         Text(
                                           "${DateFormat.jm().format(userRoutes[index].createdAt)} ",
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Row(
-                                          children: [
+                                          children: <Widget>[
                                             Text(
                                               "${userRoutes[index].deliveries.fold(
                                                     0,

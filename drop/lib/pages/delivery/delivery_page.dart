@@ -194,7 +194,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
         body: SafeArea(
           child: Center(
             child: Stack(
-              children: [
+              children: <Widget>[
                 _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : GoogleMap(
@@ -214,7 +214,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                 if (MediaQuery.of(context).orientation == Orientation.portrait)
                   Column(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
+                    children: <Widget>[
                       IconButton(
                         padding: const EdgeInsets.all(0),
                         constraints: const BoxConstraints(maxHeight: 30),
@@ -280,7 +280,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                 CrossAxisAlignment.start,
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
-                                            children: [
+                                            children: <Widget>[
                                               Text(
                                                 "DELIVERED: ${deliveryRoute.deliveries.fold(
                                                   0,
@@ -300,7 +300,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceAround,
-                                                children: [
+                                                children: <Widget>[
                                                   const Text(
                                                     "Mark delivery as completed ?",
                                                     style: TextStyle(
@@ -364,12 +364,12 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                 MainAxisAlignment.spaceBetween,
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                            children: [
+                                            children: <Widget>[
                                               Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 mainAxisAlignment:
                                                     MainAxisAlignment.start,
-                                                children: [
+                                                children: <Widget>[
                                                   IntrinsicHeight(
                                                     child: Row(
                                                       mainAxisAlignment:
@@ -378,7 +378,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                       crossAxisAlignment:
                                                           CrossAxisAlignment
                                                               .start,
-                                                      children: [
+                                                      children: <Widget>[
                                                         Text(
                                                           "#${index + 1}",
                                                           style:
@@ -389,7 +389,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                   fontSize: 15),
                                                         ),
                                                         Row(
-                                                          children: [
+                                                          children: <Widget>[
                                                             const Text(
                                                                 "DELIVERED :  "),
                                                             SizedBox(
@@ -450,7 +450,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                           .spaceBetween,
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.end,
-                                                  children: [
+                                                  children: <Widget>[
                                                     const Icon(
                                                       Icons.location_on_rounded,
                                                       color: Color.fromRGBO(
@@ -494,7 +494,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                     crossAxisAlignment:
                                                         CrossAxisAlignment
                                                             .start,
-                                                    children: [
+                                                    children: <Widget>[
                                                       const Icon(
                                                         Icons.person,
                                                         color: Colors.black,
@@ -503,7 +503,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
                                                                 .end,
-                                                        children: [
+                                                        children: <Widget>[
                                                           Text(
                                                             deliveryRoute
                                                                     .deliveries[
@@ -522,7 +522,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                   'tel:${deliveryRoute.deliveries[index].phone}'));
                                                             },
                                                             child: const Row(
-                                                              children: [
+                                                              children: <Widget>[
                                                                 Icon(
                                                                     Icons.call),
                                                                 Text(" CALL")
@@ -540,7 +540,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                     crossAxisAlignment:
                                                         CrossAxisAlignment.end,
                                                     spacing: 40,
-                                                    children: [
+                                                    children: <Widget>[
                                                       const Icon(
                                                         Icons.note_alt,
                                                         color: Color.fromRGBO(
