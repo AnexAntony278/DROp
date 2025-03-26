@@ -2,6 +2,7 @@ import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/connectivity.dart';
 import 'package:drop/services/local_file_storage.dart';
 import 'package:drop/services/maps_api_services.dart';
+import 'package:drop/services/route_optimization.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -159,7 +160,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Confirm Deletion"),
-          content: const Text("Are you sure you want to delete this delivery?"),
+          content: Text(
+              "Are you sure you want to delete delivery #${pageController.page!.round() + 1}?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -167,16 +169,52 @@ class _DeliveryPageState extends State<DeliveryPage> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Delete"),
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );
       },
     );
-
+    debugPrint("$confirmDelete and ${pageController.page}");
     if (confirmDelete == true && pageController.page != null) {
-      deliveryRoute.deliveries.removeAt(pageController.page!.toInt() - 1);
+      // debugPrint(
+      //     "removed ride ${deliveryRoute.deliveries[pageController.page!.round().toInt()].locationName}");
+
+      deliveryRoute.deliveries.removeAt(pageController.page!.round().toInt());
     }
+    setState(() {});
+  }
+
+  _optimizeRoute() async {
+    setState(() {
+      _isLoading = true;
+    });
+    if (!await InternetServices.checkInternet()) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No internet connection.')),
+        );
+      }
+      return;
+    }
+    final userLocation = await LocationServices().getCurrentLocation();
+    // Fetch distance matrix and optimize route
+    deliveryRoute = await DeliveryRoute.create(
+      deliveries: deliveryRoute.deliveries,
+      startLocation: userLocation,
+    );
+    deliveryRoute.distanceMatrix =
+        await DistanceMatrixServices.getDistanceMatrix(
+            deliveryRoute: deliveryRoute);
+
+    ACOOptimizer(deliveryRoute: deliveryRoute).optimize();
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -278,7 +316,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                 )
                               : IconButton(
                                   tooltip: "Re optimize",
-                                  onPressed: () {},
+                                  onPressed: () => _optimizeRoute(),
                                   icon: const Icon(
                                     Icons.replay_circle_filled_outlined,
                                     color: Colors.white,
