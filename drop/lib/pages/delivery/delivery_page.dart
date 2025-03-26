@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:async';
 
 class DeliveryPage extends StatefulWidget {
   const DeliveryPage({super.key});
@@ -22,35 +23,34 @@ class _DeliveryPageState extends State<DeliveryPage> {
   Set<Marker> markers = {};
   final PageController pageController = PageController();
   late GoogleMapController mapController;
-  bool isCardExpanded = false;
+  bool _isCardExpanded = false;
   bool _isLoading = true;
+  bool _isEditMode = false;
 
   @override
   void initState() {
-    _setRecentRoute();
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-    await _initializeData();
+    Future.microtask(() => _initializeData());
   }
 
   Future<void> _initializeData() async {
-    if (_isLoading) {
-      deliveryRoute =
-          ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
-    }
+    deliveryRoute = ModalRoute.of(context)!.settings.arguments as DeliveryRoute;
+    await _setRecentRoute();
     if (!await InternetServices.checkInternet() && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text("No internet connection. Check connectivity")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("No internet connection. Check connectivity")),
+      );
     }
     while (!await InternetServices.checkInternet()) {
+      if (!mounted) return;
       await Future.delayed(const Duration(seconds: 3));
     }
-    await _getRoute();
-    await _loadMarkers();
+
+    await Future.wait([
+      _getRoute(),
+      _loadMarkers(),
+    ]);
 
     if (mounted) {
       setState(() {
@@ -60,91 +60,123 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _getRoute() async {
-    await PolyLinePointList.getPolyLineRoute(
-            start: deliveryRoute.startLocation,
-            end: deliveryRoute.deliveries[0].locationLatLng)
-        .then(
-      (value) {
-        polyLines.add(Polyline(
-            polylineId: const PolylineId("Start"),
-            points: value,
-            color: const Color.fromARGB(232, 68, 137, 255),
-            width: 4,
-            zIndex: 1));
-      },
-    );
+    List<Future<void>> routeFutures = [];
+
+    routeFutures.add(PolyLinePointList.getPolyLineRoute(
+      start: deliveryRoute.startLocation,
+      end: deliveryRoute.deliveries[0].locationLatLng,
+    ).then((value) {
+      polyLines.add(Polyline(
+        polylineId: const PolylineId("Start"),
+        points: value,
+        color: const Color.fromARGB(232, 68, 137, 255),
+        width: 4,
+        zIndex: 1,
+      ));
+    }));
 
     for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
-      await PolyLinePointList.getPolyLineRoute(
-              start: deliveryRoute.deliveries[i].locationLatLng,
-              end: deliveryRoute.deliveries[i + 1].locationLatLng)
-          .then(
-        (value) {
-          polyLines.add(Polyline(
-              polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
-              points: value,
-              color: const Color.fromARGB(194, 64, 195, 255),
-              width: 3));
-        },
-      );
+      routeFutures.add(PolyLinePointList.getPolyLineRoute(
+        start: deliveryRoute.deliveries[i].locationLatLng,
+        end: deliveryRoute.deliveries[i + 1].locationLatLng,
+      ).then((value) {
+        polyLines.add(Polyline(
+          polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
+          points: value,
+          color: const Color.fromARGB(194, 64, 195, 255),
+          width: 3,
+        ));
+      }));
     }
 
-    await PolyLinePointList.getPolyLineRoute(
+    routeFutures.add(PolyLinePointList.getPolyLineRoute(
       start: deliveryRoute.deliveries.last.locationLatLng,
       end: deliveryRoute.startLocation,
-    ).then(
-      (value) {
-        polyLines.add(Polyline(
-            polylineId: const PolylineId("last"),
-            points: value,
-            color: const Color.fromARGB(194, 64, 195, 255),
-            width: 3));
-      },
-    );
+    ).then((value) {
+      polyLines.add(Polyline(
+        polylineId: const PolylineId("last"),
+        points: value,
+        color: const Color.fromARGB(194, 64, 195, 255),
+        width: 3,
+      ));
+    }));
+
+    await Future.wait(routeFutures);
   }
 
   Future<void> _loadMarkers() async {
-    Set<Marker> newMarkers = {};
+    List<Future<Marker>> markerFutures = [];
+
     for (int i = 0; i < deliveryRoute.deliveries.length; i++) {
-      final markerIcon = await createNumberedMarker(i + 1, Colors.white);
-      newMarkers.add(Marker(
-        icon: markerIcon,
-        markerId: MarkerId((i + 1).toString()),
-        position: deliveryRoute.deliveries[i].locationLatLng,
-      ));
+      markerFutures
+          .add(createNumberedMarker(i + 1, Colors.white).then((markerIcon) {
+        return Marker(
+          icon: markerIcon,
+          markerId: MarkerId((i + 1).toString()),
+          position: deliveryRoute.deliveries[i].locationLatLng,
+        );
+      }));
     }
+
+    var newMarkers = await Future.wait(markerFutures);
     newMarkers.add(Marker(
-      icon: BitmapDescriptor.defaultMarker,
+      icon: await createRedMarker(),
       markerId: const MarkerId("user"),
       position: deliveryRoute.startLocation,
     ));
+
     if (mounted) {
       setState(() {
-        markers = newMarkers;
+        markers = newMarkers.toSet();
       });
     }
-  }
-
-  void _updatePolylineColors(int selectedIndex) {
-    List<Polyline> updatedPolylines = [];
-
-    for (int i = 0; i < polyLines.length; i++) {
-      updatedPolylines.add(Polyline(
-          polylineId: polyLines[i].polylineId,
-          points: polyLines[i].points,
-          color: (i == selectedIndex)
-              ? const Color.fromARGB(232, 68, 137, 255)
-              : const Color.fromARGB(194, 64, 195, 255),
-          width: (i == selectedIndex) ? 4 : 3,
-          zIndex: (i == selectedIndex) ? 1 : 0));
-    }
-
-    polyLines = updatedPolylines;
   }
 
   Future<void> _setRecentRoute() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     preferences.setString("recentRouteId", deliveryRoute.id);
+  }
+
+  _handleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode;
+    });
+  }
+
+  Future<void> _deleteDelivery() async {
+    if (deliveryRoute.deliveries.length == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Cannot delete the last delivery."),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    bool? confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Confirm Deletion"),
+          content: const Text("Are you sure you want to delete this delivery?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true && pageController.page != null) {
+      deliveryRoute.deliveries.removeAt(pageController.page!.toInt() - 1);
+    }
   }
 
   @override
@@ -189,7 +221,19 @@ class _DeliveryPageState extends State<DeliveryPage> {
                 title: const Text(
                   'Delivery Page',
                 ),
-                backgroundColor: Theme.of(context).primaryColor)
+                backgroundColor: Theme.of(context).primaryColor,
+                actions: [
+                  Text((_isEditMode) ? "Confirm" : "Edit"),
+                  IconButton(
+                      onPressed: () async => _handleEditMode(),
+                      icon: Icon((_isEditMode)
+                          ? Icons.check
+                          : Icons.edit_location_alt_sharp)),
+                  const SizedBox(
+                    width: 10,
+                  )
+                ],
+              )
             : null,
         body: SafeArea(
           child: Center(
@@ -213,365 +257,421 @@ class _DeliveryPageState extends State<DeliveryPage> {
                         }),
                 if (MediaQuery.of(context).orientation == Orientation.portrait)
                   Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      IconButton(
-                        padding: const EdgeInsets.all(0),
-                        constraints: const BoxConstraints(maxHeight: 30),
-                        icon: (isCardExpanded)
-                            ? const Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 60,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                      color: Colors.black,
-                                      blurRadius: 5,
-                                      offset: Offset(0, 0))
-                                ],
-                              )
-                            : const Icon(
-                                Icons.keyboard_arrow_up_rounded,
-                                size: 60,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                      color: Colors.black,
-                                      blurRadius: 5,
-                                      offset: Offset(0, 0))
-                                ],
-                              ),
-                        onPressed: _toggleCardSize,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          (_isEditMode)
+                              ? IconButton(
+                                  onPressed: () => _deleteDelivery(),
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                          color: Color.fromARGB(218, 0, 0, 0),
+                                          blurRadius: 20)
+                                    ],
+                                    size: 40,
+                                  ),
+                                )
+                              : IconButton(
+                                  tooltip: "Re optimize",
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.replay_circle_filled_outlined,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                          color: Color.fromARGB(218, 0, 0, 0),
+                                          blurRadius: 20)
+                                    ],
+                                    size: 40,
+                                  ),
+                                ),
+                        ],
                       ),
-                      GestureDetector(
-                        onTap: _toggleCardSize,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          height: (isCardExpanded)
-                              ? MediaQuery.of(context).size.height / 2.9
-                              : MediaQuery.of(context).size.height / 4.2,
-                          child: PageView.builder(
-                            onPageChanged: (value) {
-                              mapController.animateCamera(
-                                  CameraUpdate.newLatLng(deliveryRoute
-                                      .deliveries[value %
-                                          deliveryRoute.deliveries.length]
-                                      .locationLatLng));
-                              // Animate to corresponding pageview location. When last page is reached, animate to start point
-                              _updatePolylineColors(value);
-                              setState(() {});
-                            },
-                            itemCount: deliveryRoute.deliveries.length + 1,
-                            controller: pageController,
-                            itemBuilder: (context, index) => Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 10),
-                              child: Card(
-                                  color:
-                                      const Color.fromARGB(255, 234, 234, 234),
-                                  elevation: 10,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20.0),
-                                    child: (index ==
-                                            deliveryRoute.deliveries.length)
-                                        ? // TODO: End of Delivery Page
-                                        Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: <Widget>[
-                                              Text(
-                                                "DELIVERED: ${deliveryRoute.deliveries.fold(
-                                                  0,
-                                                  (previousValue, element) =>
-                                                      previousValue +
-                                                      ((element.status ==
-                                                              "DELIVERED")
-                                                          ? 1
-                                                          : 0),
-                                                )} / ${deliveryRoute.deliveries.length}",
-                                                style: const TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight:
-                                                        FontWeight.w700),
-                                              ),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceAround,
-                                                children: <Widget>[
-                                                  const Text(
-                                                    "Mark delivery as completed ?",
-                                                    style: TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w500),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 25,
-                                                    width: 35,
-                                                    child: GestureDetector(
-                                                      onTap: () {
-                                                        setState(() {
+                      const SizedBox(),
+                      Column(
+                        children: <Widget>[
+                          IconButton(
+                            padding: const EdgeInsets.all(0),
+                            constraints: const BoxConstraints(maxHeight: 30),
+                            icon: (_isCardExpanded)
+                                ? const Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    size: 60,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                          color: Colors.black,
+                                          blurRadius: 5,
+                                          offset: Offset(0, 0))
+                                    ],
+                                  )
+                                : const Icon(
+                                    Icons.keyboard_arrow_up_rounded,
+                                    size: 60,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                          color: Colors.black,
+                                          blurRadius: 5,
+                                          offset: Offset(0, 0))
+                                    ],
+                                  ),
+                            onPressed: _toggleCardSize,
+                          ),
+                          GestureDetector(
+                            onTap: _toggleCardSize,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              height: (_isCardExpanded)
+                                  ? MediaQuery.of(context).size.height / 2.9
+                                  : MediaQuery.of(context).size.height / 4.2,
+                              child: PageView.builder(
+                                itemCount: deliveryRoute.deliveries.length + 1,
+                                controller: pageController,
+                                itemBuilder: (context, index) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 10),
+                                  child: Card(
+                                      color: const Color.fromARGB(
+                                          255, 234, 234, 234),
+                                      elevation: 10,
+                                      child: (!_isLoading)
+                                          ? Padding(
+                                              padding:
+                                                  const EdgeInsets.all(20.0),
+                                              child:
+                                                  (index ==
                                                           deliveryRoute
-                                                                      .status ==
-                                                                  "INCOMPLETE"
-                                                              ? deliveryRoute
-                                                                      .status =
-                                                                  "COMPLETE"
-                                                              : deliveryRoute
-                                                                      .status =
-                                                                  "INCOMPLETE";
-                                                        });
-                                                      },
-                                                      child: Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: deliveryRoute
-                                                                      .status ==
-                                                                  "INCOMPLETE"
-                                                              ? Colors.red
-                                                              : Colors.green,
-                                                          shape: BoxShape
-                                                              .rectangle,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(4),
-                                                        ),
-                                                        child: Center(
-                                                          child: Icon(
-                                                            (deliveryRoute
-                                                                        .status ==
-                                                                    "INCOMPLETE")
-                                                                ? Icons
-                                                                    .close_rounded
-                                                                : Icons
-                                                                    .check_rounded,
-                                                            color: Colors.white,
-                                                            size: 20,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              )
-                                            ],
-                                          )
-                                        : Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: <Widget>[
-                                              Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: <Widget>[
-                                                  IntrinsicHeight(
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: <Widget>[
-                                                        Text(
-                                                          "#${index + 1}",
-                                                          style:
-                                                              const TextStyle(
+                                                              .deliveries
+                                                              .length)
+                                                      ? Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: <Widget>[
+                                                            Text(
+                                                              "DELIVERED: ${deliveryRoute.deliveries.fold(
+                                                                0,
+                                                                (previousValue,
+                                                                        element) =>
+                                                                    previousValue +
+                                                                    ((element.status ==
+                                                                            "DELIVERED")
+                                                                        ? 1
+                                                                        : 0),
+                                                              )} / ${deliveryRoute.deliveries.length}",
+                                                              style: const TextStyle(
+                                                                  fontSize: 20,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w900,
-                                                                  fontSize: 15),
-                                                        ),
-                                                        Row(
-                                                          children: <Widget>[
-                                                            const Text(
-                                                                "DELIVERED :  "),
-                                                            SizedBox(
-                                                              height: 25,
-                                                              width: 35,
-                                                              child:
-                                                                  GestureDetector(
-                                                                onTap: () =>
-                                                                    _toggleDeliveryStatus(
-                                                                        index),
-                                                                child:
-                                                                    Container(
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: deliveryRoute.deliveries[index].status ==
-                                                                            "IN_STOCK"
-                                                                        ? Colors
-                                                                            .red
-                                                                        : Colors
-                                                                            .green,
-                                                                    shape: BoxShape
-                                                                        .rectangle,
-                                                                    borderRadius:
-                                                                        BorderRadius
-                                                                            .circular(4),
-                                                                  ),
-                                                                  child: Center(
-                                                                    child: Icon(
-                                                                      (deliveryRoute.deliveries[index].status ==
-                                                                              "IN_STOCK")
-                                                                          ? Icons
-                                                                              .close_rounded
-                                                                          : Icons
-                                                                              .check_rounded,
-                                                                      color: Colors
-                                                                          .white,
-                                                                      size: 20,
+                                                                          .w700),
+                                                            ),
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceAround,
+                                                              children: <Widget>[
+                                                                const Text(
+                                                                  "Mark delivery as completed ?",
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          15,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w500),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 25,
+                                                                  width: 35,
+                                                                  child:
+                                                                      GestureDetector(
+                                                                    onTap: () {
+                                                                      setState(
+                                                                          () {
+                                                                        deliveryRoute.status ==
+                                                                                "INCOMPLETE"
+                                                                            ? deliveryRoute.status =
+                                                                                "COMPLETE"
+                                                                            : deliveryRoute.status =
+                                                                                "INCOMPLETE";
+                                                                      });
+                                                                    },
+                                                                    child:
+                                                                        Container(
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: deliveryRoute.status ==
+                                                                                "INCOMPLETE"
+                                                                            ? Colors.red
+                                                                            : Colors.green,
+                                                                        shape: BoxShape
+                                                                            .rectangle,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(4),
+                                                                      ),
+                                                                      child:
+                                                                          Center(
+                                                                        child:
+                                                                            Icon(
+                                                                          (deliveryRoute.status == "INCOMPLETE")
+                                                                              ? Icons.close_rounded
+                                                                              : Icons.check_rounded,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              20,
+                                                                        ),
+                                                                      ),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ),
+                                                              ],
+                                                            )
                                                           ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  const Divider(
-                                                    height: 5,
-                                                    color: Color.fromARGB(
-                                                        50, 128, 128, 128),
-                                                  ),
-                                                ],
-                                              ),
-                                              Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  children: <Widget>[
-                                                    const Icon(
-                                                      Icons.location_on_rounded,
-                                                      color: Color.fromRGBO(
-                                                          64, 64, 64, 1),
-                                                    ),
-                                                    Expanded(
-                                                        flex: 2,
-                                                        child: Text(
-                                                          deliveryRoute
-                                                              .deliveries[index]
-                                                              .locationName,
-                                                          style:
-                                                              const TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            color:
-                                                                Color.fromRGBO(
-                                                                    64,
-                                                                    64,
-                                                                    64,
-                                                                    1),
-                                                          ),
-                                                          textAlign:
-                                                              TextAlign.right,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          maxLines: 3,
-                                                        ))
-                                                  ]),
-                                              if (isCardExpanded &&
-                                                  (deliveryRoute
-                                                              .deliveries[index]
-                                                              .ownerName ??
-                                                          '')
-                                                      .isNotEmpty)
-                                                Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: <Widget>[
-                                                      const Icon(
-                                                        Icons.person,
-                                                        color: Colors.black,
-                                                      ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .end,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            deliveryRoute
-                                                                    .deliveries[
-                                                                        index]
-                                                                    .ownerName ??
-                                                                "",
-                                                            style: const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                                fontSize: 20),
-                                                          ),
-                                                          ElevatedButton(
-                                                            onPressed: () {
-                                                              launchUrl(Uri.parse(
-                                                                  'tel:${deliveryRoute.deliveries[index].phone}'));
-                                                            },
-                                                            child: const Row(
+                                                        )
+                                                      : Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: <Widget>[
+                                                            Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .start,
                                                               children: <Widget>[
-                                                                Icon(
-                                                                    Icons.call),
-                                                                Text(" CALL")
+                                                                IntrinsicHeight(
+                                                                  child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceBetween,
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
+                                                                    children: <Widget>[
+                                                                      Text(
+                                                                        "#${index + 1}",
+                                                                        style: const TextStyle(
+                                                                            fontWeight:
+                                                                                FontWeight.w900,
+                                                                            fontSize: 15),
+                                                                      ),
+                                                                      Row(
+                                                                        children: <Widget>[
+                                                                          const Text(
+                                                                              "DELIVERED :  "),
+                                                                          SizedBox(
+                                                                            height:
+                                                                                25,
+                                                                            width:
+                                                                                35,
+                                                                            child:
+                                                                                GestureDetector(
+                                                                              onTap: () => _toggleDeliveryStatus(index),
+                                                                              child: Container(
+                                                                                decoration: BoxDecoration(
+                                                                                  color: deliveryRoute.deliveries[index].status == "IN_STOCK" ? Colors.red : Colors.green,
+                                                                                  shape: BoxShape.rectangle,
+                                                                                  borderRadius: BorderRadius.circular(4),
+                                                                                ),
+                                                                                child: Center(
+                                                                                  child: Icon(
+                                                                                    (deliveryRoute.deliveries[index].status == "IN_STOCK") ? Icons.close_rounded : Icons.check_rounded,
+                                                                                    color: Colors.white,
+                                                                                    size: 20,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                const Divider(
+                                                                  height: 5,
+                                                                  color: Color
+                                                                      .fromARGB(
+                                                                          50,
+                                                                          128,
+                                                                          128,
+                                                                          128),
+                                                                ),
                                                               ],
                                                             ),
-                                                          )
-                                                        ],
-                                                      )
-                                                    ]),
-                                              Flexible(
-                                                child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.end,
-                                                    spacing: 40,
-                                                    children: <Widget>[
-                                                      const Icon(
-                                                        Icons.note_alt,
-                                                        color: Color.fromRGBO(
-                                                            64, 64, 64, 1),
-                                                      ),
-                                                      Expanded(
-                                                        flex: 2,
-                                                        child: Text(
-                                                          deliveryRoute
-                                                                  .deliveries[
-                                                                      index]
-                                                                  .note ??
-                                                              '',
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          maxLines:
-                                                              (isCardExpanded)
-                                                                  ? 5
-                                                                  : 2,
-                                                          textAlign:
-                                                              TextAlign.right,
+                                                            Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .spaceBetween,
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .end,
+                                                                children: <Widget>[
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .location_on_rounded,
+                                                                    color: Color
+                                                                        .fromRGBO(
+                                                                            64,
+                                                                            64,
+                                                                            64,
+                                                                            1),
+                                                                  ),
+                                                                  Expanded(
+                                                                      flex: 2,
+                                                                      child:
+                                                                          Text(
+                                                                        deliveryRoute
+                                                                            .deliveries[index]
+                                                                            .locationName,
+                                                                        style:
+                                                                            const TextStyle(
+                                                                          fontSize:
+                                                                              18,
+                                                                          fontWeight:
+                                                                              FontWeight.w700,
+                                                                          color: Color.fromRGBO(
+                                                                              64,
+                                                                              64,
+                                                                              64,
+                                                                              1),
+                                                                        ),
+                                                                        textAlign:
+                                                                            TextAlign.right,
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            3,
+                                                                      ))
+                                                                ]),
+                                                            if (_isCardExpanded &&
+                                                                (deliveryRoute
+                                                                            .deliveries[
+                                                                                index]
+                                                                            .ownerName ??
+                                                                        '')
+                                                                    .isNotEmpty)
+                                                              Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  crossAxisAlignment:
+                                                                      CrossAxisAlignment
+                                                                          .start,
+                                                                  children: <Widget>[
+                                                                    const Icon(
+                                                                      Icons
+                                                                          .person,
+                                                                      color: Colors
+                                                                          .black,
+                                                                    ),
+                                                                    Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .end,
+                                                                      children: <Widget>[
+                                                                        Text(
+                                                                          deliveryRoute.deliveries[index].ownerName ??
+                                                                              "",
+                                                                          style: const TextStyle(
+                                                                              fontWeight: FontWeight.w700,
+                                                                              fontSize: 20),
+                                                                        ),
+                                                                        ElevatedButton(
+                                                                          onPressed:
+                                                                              () {
+                                                                            launchUrl(Uri.parse('tel:${deliveryRoute.deliveries[index].phone}'));
+                                                                          },
+                                                                          child:
+                                                                              const Row(
+                                                                            children: <Widget>[
+                                                                              Icon(Icons.call),
+                                                                              Text(" CALL")
+                                                                            ],
+                                                                          ),
+                                                                        )
+                                                                      ],
+                                                                    )
+                                                                  ]),
+                                                            if (deliveryRoute
+                                                                        .deliveries[
+                                                                            index]
+                                                                        .note !=
+                                                                    null &&
+                                                                deliveryRoute
+                                                                    .deliveries[
+                                                                        index]
+                                                                    .note!
+                                                                    .isNotEmpty)
+                                                              Flexible(
+                                                                child: Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceBetween,
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .end,
+                                                                    spacing: 40,
+                                                                    children: <Widget>[
+                                                                      const Icon(
+                                                                        Icons
+                                                                            .note_alt,
+                                                                        color: Color.fromRGBO(
+                                                                            64,
+                                                                            64,
+                                                                            64,
+                                                                            1),
+                                                                      ),
+                                                                      Expanded(
+                                                                        flex: 2,
+                                                                        child:
+                                                                            Text(
+                                                                          deliveryRoute
+                                                                              .deliveries[index]
+                                                                              .note!,
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          maxLines: (_isCardExpanded)
+                                                                              ? 5
+                                                                              : 2,
+                                                                          textAlign:
+                                                                              TextAlign.right,
+                                                                        ),
+                                                                      )
+                                                                    ]),
+                                                              ),
+                                                          ],
                                                         ),
-                                                      )
-                                                    ]),
-                                              ),
-                                            ],
-                                          ),
-                                  )),
+                                            )
+                                          : null),
+                                ),
+                                onPageChanged: (value) {
+                                  mapController.animateCamera(
+                                      CameraUpdate.newLatLng(deliveryRoute
+                                          .deliveries[value %
+                                              deliveryRoute.deliveries.length]
+                                          .locationLatLng));
+                                  _updatePolylineColors(value);
+                                  setState(() {});
+                                },
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -583,12 +683,26 @@ class _DeliveryPageState extends State<DeliveryPage> {
     );
   }
 
-  _toggleDeliveryStatus(int i) {
+  void _updatePolylineColors(int selectedIndex) {
+    List<Polyline> updatedPolylines = [];
+    for (int i = 0; i < polyLines.length; i++) {
+      updatedPolylines.add(Polyline(
+          polylineId: polyLines[i].polylineId,
+          points: polyLines[i].points,
+          color: (i == selectedIndex)
+              ? const Color.fromARGB(232, 68, 137, 255)
+              : const Color.fromARGB(194, 64, 195, 255),
+          width: (i == selectedIndex) ? 4 : 3,
+          zIndex: (i == selectedIndex) ? 1 : 0));
+    }
+    polyLines = updatedPolylines;
+  }
+
+  void _toggleDeliveryStatus(int i) {
     setState(() {
       if (deliveryRoute.deliveries[i].status == "IN_STOCK") {
         deliveryRoute.deliveries[i].status = "DELIVERED";
-
-        pageController.animateToPage((i + 1),
+        pageController.animateToPage(i + 1,
             duration: const Duration(milliseconds: 800),
             curve: Curves.linearToEaseOut);
       } else {
@@ -597,9 +711,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
     });
   }
 
-  _toggleCardSize() {
+  void _toggleCardSize() {
     setState(() {
-      isCardExpanded = !isCardExpanded;
+      _isCardExpanded = !_isCardExpanded;
     });
   }
 }

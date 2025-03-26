@@ -128,12 +128,10 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                 );
 
                 // Fetch distance matrix and optimize route
-                await Future.wait([
-                  DistanceMatrixServices.getDistanceMatrix(
-                          deliveryRoute: deliveryRoute)
-                      .then((matrix) => deliveryRoute.distanceMatrix = matrix),
-                  Future.delayed(const Duration(milliseconds: 500)),
-                ]);
+                deliveryRoute.distanceMatrix =
+                    await DistanceMatrixServices.getDistanceMatrix(
+                        deliveryRoute: deliveryRoute);
+
                 ACOOptimizer(deliveryRoute: deliveryRoute).optimize();
 
                 // Store the file
@@ -141,15 +139,13 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                     deliveryRoute: deliveryRoute);
 
                 if (context.mounted) {
-                  Navigator.pop(context); // Close loading dialog
+                  Navigator.pop(context);
                   Navigator.pushNamed(context, 'deliverypage',
                       arguments: deliveryRoute);
                 }
               } catch (error) {
                 if (context.mounted) {
-                  Navigator.pop(
-                      context); // Close loading dialog if an error occurs
-
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       duration: const Duration(seconds: 5),

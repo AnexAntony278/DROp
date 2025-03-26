@@ -85,45 +85,65 @@ class LocationServices {
 }
 
 class DistanceMatrixServices {
+  static const int maxLocationsPerRequest = 10;
+
   static Future<List<List<int>>> getDistanceMatrix(
       {required DeliveryRoute deliveryRoute}) async {
-    //Calculate distance matrix
-    String destinationsRequestString =
-        "${deliveryRoute.startLocation.latitude}%2C${deliveryRoute.startLocation.longitude}";
+    List<LatLng> locations = [
+      deliveryRoute.startLocation,
+      ...deliveryRoute.deliveries.map((e) => e.locationLatLng)
+    ];
 
-    for (var deliveryLocation in deliveryRoute.deliveries.map(
-      (e) => e.locationLatLng,
-    )) {
-      destinationsRequestString =
-          "$destinationsRequestString%7C${deliveryLocation.latitude}%2C${deliveryLocation.longitude}";
-    }
-    final response = jsonDecode((await http.post(Uri.parse(
-            "https://maps.googleapis.com/maps/api/distancematrix/json?destinations=$destinationsRequestString&origins=$destinationsRequestString&key=$MAPS_API_KEY")))
-        .body) as Map<String, dynamic>;
+    int n = locations.length;
+    List<List<int>> distanceMatrix = List.generate(n, (_) => List.filled(n, 0));
 
-    // extract distance matrix from
-    final List<List<int>> distanceMatrix = [];
-    var rows = response['rows'] as List?;
-    if (rows != null) {
-      for (var row in rows) {
-        var elements = row['elements'] as List?;
-        if (elements == null) continue;
-        List<int> distances = [];
-        for (var element in elements) {
-          if (element['status'] == "OK") {
-            distances.add(element['distance']?['value'] as int? ?? 0);
-          } else {
-            throw Exception("Error getting routes: ${element['status']}");
-          }
-        }
-        if (distances.isNotEmpty) {
-          distanceMatrix.add(distances);
-        }
+    for (int i = 0; i < n; i += maxLocationsPerRequest) {
+      for (int j = 0; j < n; j += maxLocationsPerRequest) {
+        int endI =
+            (i + maxLocationsPerRequest > n) ? n : i + maxLocationsPerRequest;
+        int endJ =
+            (j + maxLocationsPerRequest > n) ? n : j + maxLocationsPerRequest;
+
+        String origins = _formatLocations(locations.sublist(i, endI));
+        String destinations = _formatLocations(locations.sublist(j, endJ));
+
+        var response = await _fetchDistanceMatrix(origins, destinations);
+        _updateDistanceMatrix(response, distanceMatrix, i, j);
       }
-    } else {
-      throw Exception("HTTP Request error");
     }
+
     deliveryRoute.distanceMatrix = distanceMatrix;
     return distanceMatrix;
+  }
+
+  static String _formatLocations(List<LatLng> locations) {
+    return locations
+        .map((loc) => "${loc.latitude},${loc.longitude}")
+        .join("%7C");
+  }
+
+  static Future<Map<String, dynamic>> _fetchDistanceMatrix(
+      String origins, String destinations) async {
+    final response = await http.post(Uri.parse(
+        "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$origins&destinations=$destinations&key=$MAPS_API_KEY"));
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  static void _updateDistanceMatrix(Map<String, dynamic> response,
+      List<List<int>> matrix, int startRow, int startCol) {
+    var rows = response['rows'] as List?;
+    if (rows != null) {
+      for (int i = 0; i < rows.length; i++) {
+        var elements = rows[i]['elements'] as List?;
+        if (elements != null) {
+          for (int j = 0; j < elements.length; j++) {
+            if (elements[j]['status'] == "OK") {
+              matrix[startRow + i][startCol + j] =
+                  elements[j]['distance']?['value'] as int? ?? 0;
+            }
+          }
+        }
+      }
+    }
   }
 }

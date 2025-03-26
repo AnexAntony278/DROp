@@ -92,15 +92,18 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            ListTile(
-              title: const Text("Dashboard",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              trailing: const Icon(Icons.dashboard),
-              onTap: () async {
-                Navigator.pop(context);
-                await Navigator.pushNamed(context, "managerdashboard");
-              },
-            ),
+            if (jsonDecode(AppPreferencesService.instance.prefs
+                    .getString("user_token")!)["role"] ==
+                "MANAGER")
+              ListTile(
+                title: const Text("Dashboard",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                trailing: const Icon(Icons.dashboard),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushNamed(context, "managerdashboard");
+                },
+              ),
             ListTile(
               trailing: const Icon(Icons.logout),
               title: const Text(

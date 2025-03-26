@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drop/constants/constants.dart';
 import 'package:drop/models/user_schema.dart';
+import 'package:drop/services/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -23,10 +24,13 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
   }
 
   Future<void> fetchAgents() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    if (!await InternetServices.checkInternet() && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("No internet connection. Check connectivity")));
+    }
+    while (!await InternetServices.checkInternet()) {
+      await Future.delayed(const Duration(seconds: 3));
+    }
     try {
       final response = await http.post(
         Uri.parse("$NODE_SERVER_URL/agents"),
