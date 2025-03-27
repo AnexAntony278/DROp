@@ -69,7 +69,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
       polyLines.add(Polyline(
         polylineId: const PolylineId("Start"),
         points: value,
-        color: const Color.fromARGB(194, 10, 106, 91),
+        color: const Color.fromARGB(194, 64, 195, 255),
         width: 4,
         zIndex: 1,
       ));
@@ -83,7 +83,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
         polyLines.add(Polyline(
           polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
           points: value,
-          color: const Color.fromARGB(194, 64, 195, 255),
+          color: Colors.blueAccent,
           width: 3,
         ));
       }));
@@ -101,10 +101,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
     await Future.wait(routeFutures);
   }
 
-  void _updatePolylineColors(int selectedIndex) {
-    if (selectedIndex < 0 || selectedIndex >= polyLines.length) return;
-    debugPrint();
-  }
+  void _updatePolylineColors(int selectedIndex) {}
 
   Future<void> _loadMarkers() async {
     List<Future<Marker>> markerFutures = [];
