@@ -73,3 +73,31 @@ Future<BitmapDescriptor> createRedMarker() async {
       await img.toByteData(format: ui.ImageByteFormat.png);
   return BitmapDescriptor.bytes(byteData!.buffer.asUint8List());
 }
+
+Future<BitmapDescriptor> createFlutterIconMarker(
+    IconData icon, Color color, double size) async {
+  final ui.PictureRecorder recorder = ui.PictureRecorder();
+  final Canvas canvas = Canvas(recorder);
+
+  final TextPainter textPainter = TextPainter(
+    text: TextSpan(
+      text: String.fromCharCode(icon.codePoint),
+      style: TextStyle(
+        fontSize: size,
+        fontFamily: icon.fontFamily,
+        color: color,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  );
+
+  textPainter.layout();
+  textPainter.paint(canvas, Offset(0, 0));
+
+  final ui.Image img =
+      await recorder.endRecording().toImage(size.toInt(), size.toInt());
+  final ByteData? byteData =
+      await img.toByteData(format: ui.ImageByteFormat.png);
+
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}

@@ -18,7 +18,7 @@ class DeliveryPage extends StatefulWidget {
 }
 
 class _DeliveryPageState extends State<DeliveryPage> {
-  late final DeliveryRoute deliveryRoute;
+  late DeliveryRoute deliveryRoute;
 
   List<Polyline> polyLines = [];
   Set<Marker> markers = {};
@@ -118,14 +118,12 @@ class _DeliveryPageState extends State<DeliveryPage> {
         );
       }));
     }
-
     var newMarkers = await Future.wait(markerFutures);
     newMarkers.add(Marker(
-      icon: await createRedMarker(),
-      markerId: const MarkerId("user"),
-      position: deliveryRoute.startLocation,
-    ));
-
+        icon: await createFlutterIconMarker(Icons.warehouse, Colors.red, 60),
+        markerId: const MarkerId("user"),
+        position: deliveryRoute.startLocation,
+        zIndex: 2));
     if (mounted) {
       setState(() {
         markers = newMarkers.toSet();
@@ -192,29 +190,39 @@ class _DeliveryPageState extends State<DeliveryPage> {
     setState(() {
       _isLoading = true;
     });
+
     if (!await InternetServices.checkInternet()) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No internet connection.')),
         );
       }
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
+
     final userLocation = await LocationServices().getCurrentLocation();
-    // Fetch distance matrix and optimize route
-    deliveryRoute = await DeliveryRoute.create(
-      deliveries: deliveryRoute.deliveries,
-      startLocation: userLocation,
-    );
+    deliveryRoute.startLocation = userLocation;
+
     deliveryRoute.distanceMatrix =
         await DistanceMatrixServices.getDistanceMatrix(
-            deliveryRoute: deliveryRoute);
+      deliveryRoute: deliveryRoute,
+    );
 
     ACOOptimizer(deliveryRoute: deliveryRoute).optimize();
 
-    setState(() {
-      _isLoading = false;
-    });
+    await Future.wait([
+      _getRoute(), // Recompute and update polylines
+      _loadMarkers(), // Recompute and update markers
+    ]);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override

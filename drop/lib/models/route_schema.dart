@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 class DeliveryRoute {
   String id;
   List<Delivery> deliveries;
-  final LatLng startLocation;
+  LatLng startLocation;
   DateTime createdAt;
   final String? agentId;
   late List<List<int>> distanceMatrix;
