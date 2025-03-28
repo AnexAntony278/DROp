@@ -60,50 +60,67 @@ class _DeliveryPageState extends State<DeliveryPage> {
   }
 
   Future<void> _getRoute() async {
-    List<Future<void>> routeFutures = [];
-
+    List<Future<List<LatLng>>> routeFutures = [];
+    List<Polyline> tempPolylines = [];
     routeFutures.add(PolyLinePointList.getPolyLineRoute(
       start: deliveryRoute.startLocation,
-      end: deliveryRoute.deliveries[0].locationLatLng,
-    ).then((value) {
-      polyLines.add(Polyline(
-        polylineId: const PolylineId("Start"),
-        points: value,
-        color: const Color.fromARGB(194, 64, 195, 255),
-        width: 4,
-        zIndex: 1,
-      ));
-    }));
-
+      end: deliveryRoute.deliveries.first.locationLatLng,
+    ));
     for (var i = 0; i < deliveryRoute.deliveries.length - 1; i++) {
       routeFutures.add(PolyLinePointList.getPolyLineRoute(
         start: deliveryRoute.deliveries[i].locationLatLng,
         end: deliveryRoute.deliveries[i + 1].locationLatLng,
-      ).then((value) {
-        polyLines.add(Polyline(
-          polylineId: PolylineId(deliveryRoute.deliveries[i].locationName),
-          points: value,
-          color: Colors.blueAccent,
-          width: 3,
-        ));
-      }));
+      ));
     }
-    polyLines.add(Polyline(
-      polylineId: const PolylineId("last"),
-      points: await PolyLinePointList.getPolyLineRoute(
-        start: deliveryRoute.deliveries.last.locationLatLng,
-        end: deliveryRoute.startLocation,
-      ),
-      color: const Color.fromARGB(194, 64, 195, 255),
-      width: 3,
+    routeFutures.add(PolyLinePointList.getPolyLineRoute(
+      start: deliveryRoute.deliveries.last.locationLatLng,
+      end: deliveryRoute.startLocation,
+    ));
+    List<List<LatLng>> routePoints = await Future.wait(routeFutures);
+    tempPolylines.add(Polyline(
+      polylineId: const PolylineId("start"),
+      points: routePoints[0],
+      color: Colors.blueAccent,
+      width: 4,
+      zIndex: 1,
     ));
 
-    await Future.wait(routeFutures);
+    for (var i = 1; i < routePoints.length - 1; i++) {
+      tempPolylines.add(Polyline(
+        polylineId: PolylineId("routefrom${i - 1} to$i"),
+        points: routePoints[i],
+        color: Colors.lightBlue,
+        width: 1,
+        zIndex: 0,
+      ));
+    }
+
+    tempPolylines.add(Polyline(
+      polylineId: const PolylineId("last"),
+      points: routePoints.last,
+      color: Colors.lightBlue,
+      width: 1,
+      zIndex: 0,
+    ));
+
+    polyLines.insertAll(0, tempPolylines);
   }
 
   void _updatePolylineColors(int selectedIndex) {
-    polyLines[selectedIndex] =
-        polyLines[selectedIndex].copyWith(colorParam: Colors.amber);
+    if (selectedIndex < 0 || selectedIndex >= polyLines.length) return;
+
+    polyLines[selectedIndex] = polyLines[selectedIndex]
+        .copyWith(colorParam: Colors.blueAccent, widthParam: 4, zIndexParam: 1);
+
+    if (selectedIndex < polyLines.length - 1) {
+      polyLines[selectedIndex + 1] = polyLines[selectedIndex + 1].copyWith(
+          colorParam: Colors.lightBlue, widthParam: 1, zIndexParam: 0);
+    }
+
+    if (selectedIndex > 0) {
+      polyLines[selectedIndex - 1] = polyLines[selectedIndex - 1].copyWith(
+          colorParam: Colors.lightBlue, widthParam: 1, zIndexParam: 0);
+    }
   }
 
   Future<void> _loadMarkers() async {
@@ -317,7 +334,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                 markers: markers,
                                 initialCameraPosition: CameraPosition(
                                     target: deliveryRoute.startLocation,
-                                    zoom: 10),
+                                    zoom: 15),
                                 mapType: MapType.normal,
                                 myLocationEnabled: true,
                                 trafficEnabled: false,
@@ -628,8 +645,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                   .locationLatLng,
                                             ))
                                                 .then((_) {
-                                              if (mounted)
-                                                _updatePolylineColors(value);
+                                              if (mounted) {
+                                                setState(() {
+                                                  _updatePolylineColors(value);
+                                                });
+                                              }
                                             });
                                           }),
                                     ),

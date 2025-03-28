@@ -92,7 +92,7 @@ Future<BitmapDescriptor> createFlutterIconMarker(
   );
 
   textPainter.layout();
-  textPainter.paint(canvas, Offset(0, 0));
+  textPainter.paint(canvas, const Offset(0, 0));
 
   final ui.Image img =
       await recorder.endRecording().toImage(size.toInt(), size.toInt());
