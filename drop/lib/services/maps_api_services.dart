@@ -97,6 +97,8 @@ class DistanceMatrixServices {
     int n = locations.length;
     List<List<int>> distanceMatrix = List.generate(n, (_) => List.filled(n, 0));
 
+    List<Future<void>> requests = [];
+
     for (int i = 0; i < n; i += maxLocationsPerRequest) {
       for (int j = 0; j < n; j += maxLocationsPerRequest) {
         int endI =
@@ -107,10 +109,14 @@ class DistanceMatrixServices {
         String origins = _formatLocations(locations.sublist(i, endI));
         String destinations = _formatLocations(locations.sublist(j, endJ));
 
-        var response = await _fetchDistanceMatrix(origins, destinations);
-        _updateDistanceMatrix(response, distanceMatrix, i, j);
+        // Add API request Future to the list
+        requests.add(
+            _fetchAndUpdateMatrix(origins, destinations, distanceMatrix, i, j));
       }
     }
+
+    // Execute all API requests in parallel
+    await Future.wait(requests);
 
     deliveryRoute.distanceMatrix = distanceMatrix;
     return distanceMatrix;
@@ -122,11 +128,16 @@ class DistanceMatrixServices {
         .join("%7C");
   }
 
-  static Future<Map<String, dynamic>> _fetchDistanceMatrix(
-      String origins, String destinations) async {
-    final response = await http.post(Uri.parse(
-        "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$origins&destinations=$destinations&key=$MAPS_API_KEY"));
-    return jsonDecode(response.body) as Map<String, dynamic>;
+  static Future<void> _fetchAndUpdateMatrix(String origins, String destinations,
+      List<List<int>> matrix, int startRow, int startCol) async {
+    try {
+      final response = await http.post(Uri.parse(
+          "https://maps.googleapis.com/maps/api/distancematrix/json?origins=$origins&destinations=$destinations&key=$MAPS_API_KEY"));
+      var data = jsonDecode(response.body) as Map<String, dynamic>;
+      _updateDistanceMatrix(data, matrix, startRow, startCol);
+    } catch (e) {
+      print("Error fetching distance matrix: $e");
+    }
   }
 
   static void _updateDistanceMatrix(Map<String, dynamic> response,
