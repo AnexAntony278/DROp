@@ -54,6 +54,7 @@ class ACOOptimizer {
 
       _updatePheromones(antRoutes, routeLengths);
     }
+    // Rearrange Delvieries
 
     bestRoute.remove(0);
     deliveryRoute.deliveries = bestRoute
