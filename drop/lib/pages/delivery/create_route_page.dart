@@ -255,35 +255,63 @@ class _CreateRoutePageState extends State<CreateRoutePage> {
                                         child: MobileScanner(
                                           onDetect: (barcode) {
                                             try {
-                                              Map<String, dynamic> scanInfo =
-                                                  jsonDecode(barcode
-                                                      .barcodes.first.rawValue
-                                                      .toString());
-                                              //If scanned item already added to list, show error
+                                              // Ensure barcode data is valid
+                                              if (barcode.barcodes.isEmpty ||
+                                                  barcode.barcodes.first
+                                                          .rawValue ==
+                                                      null) {
+                                                throw const FormatException(
+                                                    "QR Code is empty or unreadable");
+                                              }
+
+                                              // Parse JSON safely
+                                              final String rawValue = barcode
+                                                  .barcodes.first.rawValue!;
+                                              late Map<String, dynamic>
+                                                  scanInfo;
+
+                                              try {
+                                                scanInfo = jsonDecode(rawValue);
+                                              } catch (e) {
+                                                throw const FormatException(
+                                                    "Invalid QR Code format");
+                                              }
+                                              // Prevent duplicate entries
                                               if (deliveries.any(
                                                   (destination) =>
                                                       destination
                                                           .locationName ==
                                                       scanInfo[
                                                           'locationName'])) {
-                                                throw ErrorDescription(
-                                                    'Item already scanned');
-                                              } else {
-                                                setState(() {
-                                                  deliveries.add(
-                                                      Delivery.fromMap(
-                                                          scanInfo));
-                                                });
+                                                throw const FormatException(
+                                                    "Item already scanned");
                                               }
+
+                                              // Add valid scanned item
+                                              setState(() {
+                                                deliveries.add(
+                                                    Delivery.fromMap(scanInfo));
+                                              });
+
                                               Navigator.pop(context);
                                             } catch (e) {
-                                              Navigator.pop(context);
+                                              // Show error BEFORE closing scanner
                                               ScaffoldMessenger.of(context)
-                                                  .showSnackBar(SnackBar(
-                                                      duration: const Duration(
-                                                          seconds: 2),
-                                                      content: Text(
-                                                          'Invalid QR : $e')));
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  duration: const Duration(
+                                                      seconds: 2),
+                                                  content: Text(
+                                                      'Error: ${e is FormatException ? e.message : "Unknown error"}'),
+                                                ),
+                                              );
+
+                                              // Delay closing the scanner to allow user to see the error
+                                              Future.delayed(
+                                                  const Duration(seconds: 2),
+                                                  () {
+                                                Navigator.pop(context);
+                                              });
                                             }
                                           },
                                         ),

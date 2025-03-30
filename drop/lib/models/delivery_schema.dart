@@ -13,6 +13,7 @@ class Delivery {
   final String locationName;
   late final LatLng locationLatLng;
   int deliveryAttempts = 0;
+  DateTime? deliveredAt;
 
   Delivery._internal({
     required this.id,

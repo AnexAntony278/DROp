@@ -15,12 +15,12 @@ class ACOOptimizer {
 
   ACOOptimizer({
     required this.deliveryRoute,
-    this.numAnts = 10,
-    this.numIterations = 100,
+    this.numAnts = 20,
+    this.numIterations = 200,
     this.alpha = 1.0,
-    this.beta = 2.0,
-    this.evaporationRate = 0.5,
-    this.q = 100.0,
+    this.beta = 8.0,
+    this.evaporationRate = 0.7,
+    this.q = 200.0,
   }) {
     _initializePheromones();
   }
@@ -54,8 +54,6 @@ class ACOOptimizer {
 
       _updatePheromones(antRoutes, routeLengths);
     }
-    // Rearrange Delvieries
-
     bestRoute.remove(0);
     deliveryRoute.deliveries = bestRoute
         .map(

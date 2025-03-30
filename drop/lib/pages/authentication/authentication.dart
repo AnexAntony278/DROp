@@ -204,12 +204,13 @@ class _LoginCardState extends State<LoginCard> {
 
   _handleLogin() async {
     try {
-      final response = await http.post(Uri.parse("$NODE_SERVER_URL/login"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "name_or_email": _usernameEditingController.text,
-            "password": _passwordEditingController.text
-          }));
+      final response =
+          await http.post(Uri.parse("$NODE_SERVER_URL/users/login"),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({
+                "name_or_email": _usernameEditingController.text,
+                "password": _passwordEditingController.text
+              }));
       if (response.statusCode == 200 && mounted) {
         //TODO:
         Navigator.popAndPushNamed(context, 'homepage');
@@ -552,7 +553,7 @@ class _SignUpCard3State extends State<SignUpCard3> {
       _user['password'] = _passwordEditingController.text;
       try {
         final response = await http.post(
-          Uri.parse("$NODE_SERVER_URL/signup"),
+          Uri.parse("$NODE_SERVER_URL/users/signup"),
           body: jsonEncode(_user),
           headers: {'Content-Type': 'application/json'},
         );
