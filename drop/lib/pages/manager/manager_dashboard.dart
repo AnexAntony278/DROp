@@ -33,7 +33,7 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
     }
     try {
       final response = await http.post(
-        Uri.parse("$NODE_SERVER_URL/agents"),
+        Uri.parse("$NODE_SERVER_URL/users/agents"),
         body: jsonEncode({"managerId": User.getCurrentUserId()}),
         headers: {'Content-Type': "application/json"},
       );

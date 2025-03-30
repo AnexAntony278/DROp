@@ -45,7 +45,7 @@ const App = () => {
       </header>
 
       <section className="about">
-        <h2>About</h2>
+        <h2>ABOUT</h2>
         <p><b>DROp</b> is a dynamic route optimization tool designed to help delivery agents improve efficiency and reduce delays. The mobile application is built using a  <b>Flutter</b> frontend and a <b>Node.js</b> backend, utilizing a <b>Mongo DB </b> database. It uses ACO algorithm to solve the classical TSP problem provide near optimal route planning and delivery management for delivery agents- all in effective speeds. The app is <b>primarily targeted at delivery agents with low knowledge of the locality</b> , reducing the entry level knowledge required for the job </p>
 
         <p>In future, the app intends to:
@@ -58,7 +58,7 @@ const App = () => {
               Complete the DROp delivery mangement ecosystem with inventory mangement
             </li>
             <li>Combined optimal path finding that accounts for multiple delivery agents</li>
-          </ul>
+          </ul><br /> <br />
         </p>
         <a href="http://localhost:3000/downloads/drop.apk" className="download-btn" onClick={(e) => { e.preventDefault(); handleDownload(); }}>
           <img src={downloadIcon} alt="Download" className="download-icon" />
@@ -78,7 +78,7 @@ const App = () => {
         </Slider>
       </section>
       <section className="contact">
-        <h2>Contact</h2>
+        <h2>CONTACT</h2>
         <b>Team Pr0xy</b> <br />
         <b>Email: anexantony2783@gmail.com</b><br />
         <b>Phone: +91 7034456811</b><br />
