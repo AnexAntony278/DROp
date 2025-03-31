@@ -34,9 +34,9 @@ userRouter.post("/login", async (req, res) => {
     }
 })
 
-userRouter.post("/agents", async (req, res) => {
+userRouter.get("/agents", async (req, res) => {
     try {
-        const { managerId } = req.body;
+        const { managerId } = req.query;
         const agents = await User.find({ managerId: managerId }).select("-password").lean().exec();
         res.status(200).json({ "agents": agents });
     } catch (error) {

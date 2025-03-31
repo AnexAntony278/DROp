@@ -32,9 +32,9 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
       await Future.delayed(const Duration(seconds: 3));
     }
     try {
-      final response = await http.post(
-        Uri.parse("$NODE_SERVER_URL/users/agents"),
-        body: jsonEncode({"managerId": User.getCurrentUserId()}),
+      final response = await http.get(
+        Uri.parse(
+            "$NODE_SERVER_URL/users/agents?managerId=${User.getCurrentUserId()}"),
         headers: {'Content-Type': "application/json"},
       );
 
