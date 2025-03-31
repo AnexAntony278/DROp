@@ -4,7 +4,6 @@ const app = express();
 app.use(express.json());
 const connection =
     require('./db.connect.js')
-
 const deliveryRouter = require("./routes/delivery.js")
 const userRouter = require("./routes/user.js")
 

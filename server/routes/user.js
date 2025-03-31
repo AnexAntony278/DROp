@@ -44,4 +44,26 @@ userRouter.post("/agents", async (req, res) => {
     }
 })
 
+userRouter.get("/managers", async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) {
+            return res.status(400).json({ error: "Search text is required" });
+        }
+        const managersPredictions = await User.find({
+            $or: [{ email: email }, { name: email }],
+            role: "MANAGER"
+        });
+        if (managersPredictions.length == 0) {
+            res.status(404).send();
+        } else {
+            res.status(200).send();
+
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
 module.exports = userRouter;

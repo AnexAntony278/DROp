@@ -22,6 +22,7 @@ const userSchema = mongoose.Schema({
     , role: {
         type: String,
         required: true,
+        enum: ["MANAGER", "AGENT"]
     },
     managerId: {
         type: String,
