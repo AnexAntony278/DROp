@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drop/constants/constants.dart';
 import 'package:drop/models/user_schema.dart';
+import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -85,6 +86,20 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
     }
   }
 
+  void _inviteWhatsapp() async {
+    try {
+      final Uri url = Uri.parse(
+          "https://wa.me/?text=${Uri.encodeComponent('Join my *DROp* team using link: \n https://drop-website.onrender.com/ \n *User Name:* ${jsonDecode(AppPreferencesService.instance.prefs.getString("user_token") ?? "")["name"]}')}");
+
+      await launchUrl(url);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("failed to launch whatsapp link")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,28 +121,58 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
             ),
             const SizedBox(height: 10),
             Expanded(
-              child: _isLoading
+              child: (_isLoading)
                   ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
-                      itemCount: employees.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.person),
-                            title: Text(
-                              employees[index]["name"],
-                              style: const TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.w500),
+                  : (employees.isEmpty)
+                      ? GestureDetector(
+                          onTap: _inviteWhatsapp,
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.group_add,
+                                  size: 48,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  "No delivery agents available\nClick to invite agents to join your team!",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ),
-                            subtitle: Text(employees[index]["email"]),
-                            trailing: IconButton(
-                                onPressed: () =>
-                                    _makeCall(employees[index]["phone"]),
-                                icon: const Icon(Icons.call)),
                           ),
-                        );
-                      },
-                    ),
+                        )
+                      : ListView.builder(
+                          itemCount: employees.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              child: ListTile(
+                                leading: const Icon(Icons.person),
+                                title: Text(
+                                  employees[index]["name"],
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                subtitle: Text(employees[index]["email"]),
+                                trailing: IconButton(
+                                    onPressed: () =>
+                                        _makeCall(employees[index]["phone"]),
+                                    icon: const Icon(Icons.call)),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
