@@ -1,13 +1,8 @@
 const express = require("express")
-const deliveryRoute = express.Router()
+const deliveryRouter = express.Router()
 
-deliveryRoute.post("/", (req, res) => {
-    res.status(200).send("OKKKKKKKKKKKK")
-
-})
-deliveryRoute.post("/all", (req, res) => {
-    res.status(200).send("ALLLL")
+deliveryRouter.post("/", (req, res) => {
 
 })
 
-module.exports = deliveryRoute;
+module.exports = deliveryRouter;

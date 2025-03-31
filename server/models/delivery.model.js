@@ -38,9 +38,9 @@ const deliverySchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    deliveredAt: {
+    timeStamp: {
         type: Date,
-        required: true
+        required: false
     }
 }, {
     timestamps: true

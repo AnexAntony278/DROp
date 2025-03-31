@@ -5,6 +5,7 @@ import 'package:drop/services/maps_api_services.dart';
 import 'package:drop/services/route_optimization.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -125,15 +126,16 @@ class _DeliveryPageState extends State<DeliveryPage> {
 
   Future<void> _loadMarkers() async {
     List<Future<Marker>> markerFutures = [];
-
     for (int i = 0; i < deliveryRoute.deliveries.length; i++) {
       markerFutures
           .add(createNumberedMarker(i + 1, Colors.white).then((markerIcon) {
         return Marker(
-          icon: markerIcon,
-          markerId: MarkerId((i + 1).toString()),
-          position: deliveryRoute.deliveries[i].locationLatLng,
-        );
+            icon: markerIcon,
+            markerId: MarkerId((i + 1).toString()),
+            position: deliveryRoute.deliveries[i].locationLatLng,
+            onTap: () {
+              pageController.jumpToPage(i);
+            });
       }));
     }
     var newMarkers = await Future.wait(markerFutures);
@@ -244,6 +246,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
     setState(() {
       if (deliveryRoute.deliveries[i].status == "IN_STOCK") {
         deliveryRoute.deliveries[i].status = "DELIVERED";
+        deliveryRoute.deliveries[i].timeStamp = DateTime.now();
+
         pageController.animateToPage(i + 1,
             duration: const Duration(milliseconds: 800),
             curve: Curves.linearToEaseOut);
@@ -467,6 +471,31 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                             style:
                                                                                 const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                                                                           ),
+                                                                          if (deliveryRoute
+                                                                              .deliveries
+                                                                              .any(
+                                                                            (element) =>
+                                                                                element.status ==
+                                                                                "IN_STOCK",
+                                                                          ))
+                                                                            Row(
+                                                                              children: [
+                                                                                const Text(
+                                                                                  "Some deliveries are still pending.",
+                                                                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.red),
+                                                                                ),
+                                                                                IconButton(
+                                                                                  onPressed: () {
+                                                                                    pageController.jumpToPage(deliveryRoute.deliveries.indexWhere(
+                                                                                      (element) => element.status == "IN_STOCK",
+                                                                                    ));
+                                                                                  },
+                                                                                  icon: const Icon(Icons.arrow_forward),
+                                                                                  color: Colors.red,
+                                                                                  iconSize: 20,
+                                                                                )
+                                                                              ],
+                                                                            ),
                                                                           Row(
                                                                             mainAxisAlignment:
                                                                                 MainAxisAlignment.spaceAround,
@@ -515,6 +544,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                                 MainAxisSize.min,
                                                                             mainAxisAlignment:
                                                                                 MainAxisAlignment.start,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.end,
                                                                             children: <Widget>[
                                                                               IntrinsicHeight(
                                                                                 child: Row(
@@ -558,6 +589,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                                 height: 5,
                                                                                 color: Color.fromARGB(50, 128, 128, 128),
                                                                               ),
+                                                                              if (deliveryRoute.deliveries[index].status == "DELIVERED")
+                                                                                Text("at ${DateFormat.jm().format(deliveryRoute.deliveries[index].timeStamp!)}")
                                                                             ],
                                                                           ),
                                                                           Row(
@@ -582,8 +615,29 @@ class _DeliveryPageState extends State<DeliveryPage> {
                                                                                       maxLines: 3,
                                                                                     ))
                                                                               ]),
+                                                                          if (deliveryRoute.deliveries[index].productName !=
+                                                                              null)
+                                                                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
+                                                                              const Icon(
+                                                                                Icons.shopping_bag,
+                                                                                color: Color.fromRGBO(64, 64, 64, 1),
+                                                                              ),
+                                                                              Expanded(
+                                                                                  flex: 2,
+                                                                                  child: Text(
+                                                                                    deliveryRoute.deliveries[index].productName!,
+                                                                                    style: const TextStyle(
+                                                                                      fontSize: 18,
+                                                                                      fontWeight: FontWeight.w700,
+                                                                                      color: Color.fromRGBO(64, 64, 64, 1),
+                                                                                    ),
+                                                                                    textAlign: TextAlign.right,
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    maxLines: 3,
+                                                                                  ))
+                                                                            ]),
                                                                           if (_isCardExpanded &&
-                                                                              (deliveryRoute.deliveries[index].ownerName ?? '').isNotEmpty)
+                                                                              (deliveryRoute.deliveries[index].ownerName ?? "").isNotEmpty)
                                                                             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                                                                               const Icon(
                                                                                 Icons.person,
