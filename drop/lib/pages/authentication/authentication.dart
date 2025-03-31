@@ -338,10 +338,11 @@ class SignUpCard2 extends StatefulWidget {
 }
 
 class _SignUpCard2State extends State<SignUpCard2> {
-  List<String> roles = ["Manager", "Delivery Agent"];
+  List<String> roles = ["MANAGER", "AGENT"];
   late String selectedRole;
   final TextEditingController managerEditingController =
       TextEditingController();
+  String? managerError;
 
   void onRoleChange(String option) {
     setState(() {
@@ -414,7 +415,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                             groupValue: selectedRole,
                             onChanged: (option) => onRoleChange(option ?? '')),
                         Text(
-                          (selectedRole == 'Manager')
+                          (selectedRole == 'MANAGER')
                               ? 'Monitor and manage multiple delivery agents'
                               : 'Create and view optimized Delivery routes',
                           style: const TextStyle(
@@ -422,7 +423,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                         )
                       ],
                     ),
-                    if (selectedRole == 'Delivery Agent')
+                    if (selectedRole == 'AGENT')
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -432,7 +433,28 @@ class _SignUpCard2State extends State<SignUpCard2> {
                           ),
                           TextFormField(
                             controller: managerEditingController,
+                            onChanged: (value) async {
+                              if (value.isEmpty) {
+                                managerError = null;
+                                return;
+                              }
+                              final response = await http.get(
+                                Uri.parse(
+                                    "$NODE_SERVER_URL/users/managers?email=$value"),
+                                headers: {'Content-Type': 'application/json'},
+                              );
+
+                              if (response.statusCode == 200) {
+                                managerError = null;
+                              } else {
+                                managerError = "Manager does not exist";
+                              }
+                            },
                           ),
+                          Text(
+                            managerError ?? "",
+                            style: const TextStyle(color: Colors.red),
+                          )
                         ],
                       ),
                     Row(
@@ -449,10 +471,11 @@ class _SignUpCard2State extends State<SignUpCard2> {
                             onPressed: () => {widget.cardChange(1)}),
                         TextButton(
                             onPressed: () {
-                              if (_formKeys[2].currentState?.validate() ??
-                                  false) {
+                              if ((_formKeys[2].currentState?.validate() ??
+                                      false) &&
+                                  managerError == null) {
                                 _user['role'] = selectedRole;
-                                _user['mangerId'] =
+                                _user['managerId'] =
                                     managerEditingController.text.toUpperCase();
                                 widget.cardChange(3);
                               }
