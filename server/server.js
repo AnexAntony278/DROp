@@ -1,13 +1,13 @@
 const express = require('express');
 var port = 3000;
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 const connection =
     require('./db.connect.js')
-const deliveryRouter = require("./routes/delivery.js")
-const userRouter = require("./routes/user.js")
+const userRouter = require("./routes/user.js");
+const routesRouter = require('./routes/routes.js');
 
-app.use("/deliveries", deliveryRouter);
+app.use("/deliveries", routesRouter);
 app.use("/users", userRouter);
 
 app.listen(port, '0.0.0.0', () => {

@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:drop/constants/constants.dart';
 import 'package:drop/models/route_schema.dart';
 import 'package:drop/services/connectivity.dart';
 import 'package:drop/services/local_file_storage.dart';
@@ -6,6 +9,7 @@ import 'package:drop/services/route_optimization.dart';
 import 'package:drop/widgets/numbered_marker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -52,7 +56,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
       _getRoute(),
       _loadMarkers(),
     ]);
-
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -172,7 +175,6 @@ class _DeliveryPageState extends State<DeliveryPage> {
       );
       return;
     }
-
     bool? confirmDelete = await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -196,9 +198,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
         );
       },
     );
-    debugPrint("$confirmDelete and ${pageController.page}");
     if (confirmDelete == true && pageController.page != null) {
-      deliveryRoute.deliveries.removeAt(pageController.page!.round().toInt());
+      (deliveryRoute.deliveries
+          .removeAt(pageController.page!.round().toInt())
+          .toString());
+      _optimizeRoute();
     }
     setState(() {});
   }
@@ -263,6 +267,22 @@ class _DeliveryPageState extends State<DeliveryPage> {
     });
   }
 
+  Future<void> uploadRoute() async {
+    try {
+      final res = await http.post(Uri.parse("$NODE_SERVER_URL/deliveries"),
+          body: jsonEncode(deliveryRoute.toMap()),
+          headers: {'Content-Type': 'application/json'});
+      if (res.statusCode != 200) {
+        throw Exception(res.body);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -293,10 +313,11 @@ class _DeliveryPageState extends State<DeliveryPage> {
 
         if (!mounted || !shouldPop) return;
         await LocalFileStorage.storeRouteFile(deliveryRoute: deliveryRoute);
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (context.mounted) {
-            Navigator.popAndPushNamed(context, 'homepage');
-          }
+        if (context.mounted) {
+          Navigator.popAndPushNamed(context, 'homepage');
+        }
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          await uploadRoute();
         });
       },
       child: Scaffold(

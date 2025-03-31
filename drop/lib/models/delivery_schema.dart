@@ -63,7 +63,7 @@ class Delivery {
         'lat': locationLatLng.latitude,
         'lng': locationLatLng.longitude,
       },
-      'timeStamp': timeStamp,
+      'timeStamp': timeStamp?.toIso8601String(),
       'deliveryAttempts': deliveryAttempts,
     };
   }

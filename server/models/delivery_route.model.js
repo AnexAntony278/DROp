@@ -8,8 +8,7 @@ const deliveryRouteSchema = new mongoose.Schema({
     },
     deliveries: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Delivery",
-        required: true
+        ref: 'Delivery'
     }],
     startLocation: {
         lat: { type: Number, required: true },
@@ -19,7 +18,8 @@ const deliveryRouteSchema = new mongoose.Schema({
         type: Date,
     },
     agentId: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
     },
     distanceMatrix: {
         type: [[Number]],
@@ -30,7 +30,7 @@ const deliveryRouteSchema = new mongoose.Schema({
         enum: ["INCOMPLETE", "COMPLETED"],
         default: "INCOMPLETE"
     }
-}, { _id: false });
+});
 
 const DeliveryRoute = mongoose.model("DeliveryRoute", deliveryRouteSchema);
 module.exports = { DeliveryRoute };

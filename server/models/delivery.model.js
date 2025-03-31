@@ -19,7 +19,7 @@ const deliverySchema = new mongoose.Schema({
     },
     note: {
         type: String,
-        required: true
+        required: false
     },
     locationName: {
         type: String,
@@ -42,8 +42,6 @@ const deliverySchema = new mongoose.Schema({
         type: Date,
         required: false
     }
-}, {
-    timestamps: true
 });
 
 const Delivery = mongoose.model('Delivery', deliverySchema);
