@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:drop/constants/constants.dart';
-import 'package:drop/models/user_schema.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:drop/services/connectivity.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +34,7 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
     try {
       final response = await http.get(
         Uri.parse(
-            "$NODE_SERVER_URL/users/agents?managerId=${User.getCurrentUserId()}"),
+            "$NODE_SERVER_URL/users/agents?managerId=${jsonDecode(AppPreferencesService.instance.prefs.getString("user_token")!)["email"]}"),
         headers: {'Content-Type': "application/json"},
       );
 
@@ -157,6 +156,10 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
                           itemBuilder: (context, index) {
                             return Card(
                               child: ListTile(
+                                onTap: () {
+                                  Navigator.pushNamed(context, "agentstatspage",
+                                      arguments: employees[index]);
+                                },
                                 leading: const Icon(Icons.person),
                                 title: Text(
                                   employees[index]["name"],

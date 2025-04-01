@@ -37,7 +37,10 @@ userRouter.post("/login", async (req, res) => {
 userRouter.get("/agents", async (req, res) => {
     try {
         const { managerId } = req.query;
-        const agents = await User.find({ managerId: managerId }).select("-password").lean().exec();
+        const agents = await User.find({ managerId: { $regex: new RegExp(`^${managerId}$`, "i") } })
+            .select("-password")
+            .lean()
+            .exec();
         res.status(200).json({ "agents": agents });
     } catch (error) {
 

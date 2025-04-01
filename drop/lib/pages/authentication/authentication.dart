@@ -212,7 +212,6 @@ class _LoginCardState extends State<LoginCard> {
                 "password": _passwordEditingController.text
               }));
       if (response.statusCode == 200 && mounted) {
-        //TODO:
         Navigator.popAndPushNamed(context, 'homepage');
         await AppPreferencesService.instance.prefs.setString(
             'user_token', jsonDecode(response.body)['user_token'].toString());
@@ -476,7 +475,7 @@ class _SignUpCard2State extends State<SignUpCard2> {
                                   managerError == null) {
                                 _user['role'] = selectedRole;
                                 _user['managerId'] =
-                                    managerEditingController.text.toUpperCase();
+                                    managerEditingController.text;
                                 widget.cardChange(3);
                               }
                             },

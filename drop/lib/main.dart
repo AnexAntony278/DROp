@@ -2,6 +2,7 @@ import 'package:drop/pages/authentication/authentication.dart';
 import 'package:drop/pages/delivery/create_route_page.dart';
 import 'package:drop/pages/delivery/delivery_page.dart';
 import 'package:drop/pages/delivery/homepage.dart';
+import 'package:drop/pages/manager/agent_stats_page.dart';
 import 'package:drop/pages/manager/manager_dashboard.dart';
 import 'package:drop/services/app_preferences_service.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +44,8 @@ class MyApp extends StatelessWidget {
         "homepage": (context) => const HomePage(),
         "createroutepage": (context) => const CreateRoutePage(),
         "deliverypage": (context) => const DeliveryPage(),
-        "managerdashboard": (context) => const ManagerDashBoard()
+        "managerdashboard": (context) => const ManagerDashBoard(),
+        "agentstatspage": (context) => const AgentStatsPage()
       },
     );
   }
