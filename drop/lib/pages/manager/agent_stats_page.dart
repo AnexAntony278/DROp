@@ -1,5 +1,9 @@
+import 'dart:convert';
+import 'package:drop/services/connectivity.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import '../../constants/constants.dart';
 
 class AgentStatsPage extends StatefulWidget {
   const AgentStatsPage({super.key});
@@ -9,8 +13,19 @@ class AgentStatsPage extends StatefulWidget {
 }
 
 class _AgentStatsPageState extends State<AgentStatsPage> {
-  late String agentId;
-  late Map<String, dynamic> performanceStats;
+  String? agentId;
+  bool isLoading = true;
+  Map<String, dynamic> performanceStats = {
+    "performaceStats": {
+      "deliveries": {
+        "lastDay": {"delivered": 1, "total": 0},
+        "lastWeek": {"delivered": 0, "total": 0},
+        "lastMonth": {"delivered": 0, "total": 0},
+        "lastYear": {"delivered": 0, "total": 0}
+      },
+      "packages": {"delievered": 0, "total": 0}
+    }
+  };
 
   String selectedTimeFrame = "lastDay";
   final Map<String, String> timeFrameLabels = {
@@ -20,52 +35,57 @@ class _AgentStatsPageState extends State<AgentStatsPage> {
     "lastYear": "Last Year",
   };
 
+  Map<String, dynamic> deliveries = {};
+  Map<String, dynamic> packages = {};
+  double packagesSuccessRate = 0.0;
+
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Now it's safe to use ModalRoute.of(context)
-    final arguments = ModalRoute.of(context)?.settings.arguments as Map?;
-    if (arguments != null) {
-      setState(() {
-        agentId = arguments['agentId'] ?? '';
-      });
-      fetchData(agentId); // Fetch data using the agentId
-    }
+  void initState() {
+    super.initState();
+    Future.microtask(() => _initializeData());
   }
 
-  // Function to fetch data based on the agentId
-  void fetchData(String agentId) async {
-    // You can replace this with an actual API call
-    // Example:
-    setState(() {
-      performanceStats = {
-        "deliveries": {
-          "lastDay": {"delivered": 1, "total": 5},
-          "lastWeek": {"delivered": 2, "total": 10},
-          "lastMonth": {"delivered": 8, "total": 20},
-          "lastYear": {"delivered": 30, "total": 50},
-        },
-        "packages": {"delivered": 23, "total": 132}
-      };
-    });
+  Future<void> _initializeData() async {
+    agentId = ModalRoute.of(context)!.settings.arguments as String?;
+
+    if (!await InternetServices.checkInternet() && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("No internet connection. Check connectivity")),
+      );
+    }
+    while (!await InternetServices.checkInternet()) {
+      if (!mounted) return;
+      await Future.delayed(const Duration(seconds: 3));
+    }
+
+    final response = await http.get(
+        Uri.parse(
+            "$NODE_SERVER_URL/performance?agentId=${agentId ?? '67eb9bffb16c499eb8697cdc'}"),
+        headers: {'Content-Type': 'application/json'});
+
+    if (mounted) {
+      setState(() {
+        performanceStats = jsonDecode(response.body);
+        deliveries = performanceStats['performaceStats']['deliveries'];
+        packages = performanceStats['performaceStats']['packages'];
+        packagesSuccessRate = packages['total'] > 0
+            ? packages['delievered'] / packages['total']
+            : 0.0;
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final deliveries = performanceStats['deliveries'] as Map<String, dynamic>;
-    final packages = performanceStats['packages'] as Map<String, dynamic>;
-    double packagesSuccessRate =
-        packages['total'] > 0 ? packages['delivered'] / packages['total'] : 0.0;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         title: const Text('Performance Statistics'),
       ),
-      body: performanceStats.isEmpty
-          ? const Center(
-              child:
-                  CircularProgressIndicator()) // Show loading indicator while data is being fetched
+      body: (performanceStats.isEmpty || isLoading)
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(

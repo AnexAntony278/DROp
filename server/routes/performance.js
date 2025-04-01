@@ -18,7 +18,7 @@ performanceRouter.get("/", async (req, res) => {
         const lastYear = new Date(now);
         lastYear.setFullYear(now.getFullYear() - 1);
 
-        const deliveryRoutes = await DeliveryRoute.find({ agentId }).populate('deliveries');
+        const deliveryRoutes = await DeliveryRoute.find({ id: agentId }).populate('deliveries');
         let performaceStats = {
             deliveries: {
                 lastDay: { delivered: 0, total: 0 },

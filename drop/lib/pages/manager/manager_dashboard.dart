@@ -158,7 +158,7 @@ class ManagerDashBoardState extends State<ManagerDashBoard> {
                               child: ListTile(
                                 onTap: () {
                                   Navigator.pushNamed(context, "agentstatspage",
-                                      arguments: employees[index]);
+                                      arguments: employees[index]["_id"]);
                                 },
                                 leading: const Icon(Icons.person),
                                 title: Text(
