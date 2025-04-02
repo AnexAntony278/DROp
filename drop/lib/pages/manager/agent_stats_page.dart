@@ -18,7 +18,7 @@ class _AgentStatsPageState extends State<AgentStatsPage> {
   Map<String, dynamic> performanceStats = {
     "performaceStats": {
       "deliveries": {
-        "lastDay": {"delivered": 1, "total": 0},
+        "lastDay": {"delivered": 1, "total": 20},
         "lastWeek": {"delivered": 0, "total": 0},
         "lastMonth": {"delivered": 0, "total": 0},
         "lastYear": {"delivered": 0, "total": 0}
