@@ -7,7 +7,7 @@ class User {
   late final String email;
   late final String phone;
   late final String password;
-  late final String role; // MANAGER | AGENT
+  late final String role;
   String? managerId;
   late final DateTime createdAt;
 
