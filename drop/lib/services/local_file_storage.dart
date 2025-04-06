@@ -14,6 +14,7 @@ class LocalFileStorage {
     await userDirectory.create(recursive: true);
 
     File file = File("${userDirectory.path}/${deliveryRoute.id}.json");
+    debugPrint(deliveryRoute.toMap().toString());
     await file.writeAsString(jsonEncode(deliveryRoute.toMap()));
   }
 

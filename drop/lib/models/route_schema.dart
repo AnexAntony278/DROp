@@ -65,7 +65,8 @@ class DeliveryRoute {
                 )
                 .toList(),
           )
-          .toList();
+          .toList()
+      ..status = data['status'];
     return deliveryRoute;
   }
 }
