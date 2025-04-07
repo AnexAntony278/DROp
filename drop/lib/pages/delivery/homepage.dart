@@ -214,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                                               ((element.status == "DELIVERED")
                                                   ? 1
                                                   : 0),
-                                        )}/ ${recentRoute?.deliveries.length} deliveried",
+                                        )}/ ${recentRoute?.deliveries.length} delivered",
                                         style: const TextStyle(
                                             color: Color.fromARGB(
                                                 255, 58, 247, 203),
